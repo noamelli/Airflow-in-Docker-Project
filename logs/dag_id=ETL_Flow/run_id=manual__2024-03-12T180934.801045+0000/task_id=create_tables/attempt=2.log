@@ -1,0 +1,7 @@
+[2024-03-12T18:15:43.436+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.create_tables manual__2024-03-12T18:09:34.801045+00:00 [queued]>
+[2024-03-12T18:15:43.594+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.create_tables manual__2024-03-12T18:09:34.801045+00:00 [queued]>
+[2024-03-12T18:15:43.601+0000] {taskinstance.py:2193} INFO - Starting attempt 2 of 6
+[2024-03-12T18:15:43.839+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): create_tables> on 2024-03-12 18:09:34.801045+00:00
+[2024-03-12T18:15:44.224+0000] {standard_task_runner.py:60} INFO - Started process 416 to run task
+[2024-03-12T18:15:44.346+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'create_tables', 'manual__2024-03-12T18:09:34.801045+00:00', '--job-id', '971', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmphh_ddmzk']
+[2024-03-12T18:15:44.401+0000] {standard_task_runner.py:88} INFO - Job 971: Subtask create_tables

@@ -1,0 +1,469 @@
+[2024-03-12T18:32:07.491+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.create_tables manual__2024-03-12T18:08:05.335366+00:00 [queued]>
+[2024-03-12T18:32:07.767+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.create_tables manual__2024-03-12T18:08:05.335366+00:00 [queued]>
+[2024-03-12T18:32:07.784+0000] {taskinstance.py:2193} INFO - Starting attempt 5 of 6
+[2024-03-12T18:32:08.047+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): create_tables> on 2024-03-12 18:08:05.335366+00:00
+[2024-03-12T18:32:08.117+0000] {standard_task_runner.py:60} INFO - Started process 419 to run task
+[2024-03-12T18:32:08.151+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'create_tables', 'manual__2024-03-12T18:08:05.335366+00:00', '--job-id', '1029', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmp7n4_8mwd']
+[2024-03-12T18:32:08.192+0000] {standard_task_runner.py:88} INFO - Job 1029: Subtask create_tables
+[2024-03-12T18:32:08.790+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.create_tables manual__2024-03-12T18:08:05.335366+00:00 [running]> on host f325c35ec09e
+[2024-03-12T18:32:31.861+0000] {job.py:213} ERROR - Job heartbeat got an exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/jobs/job.py", line 187, in heartbeat
+    self._merge_from(Job._fetch_from_db(self, session))
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/api_internal/internal_api_call.py", line 114, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/utils/session.py", line 76, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/jobs/job.py", line 308, in _fetch_from_db
+    session.merge(job)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 3056, in merge
+    return self._merge(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 3136, in _merge
+    merged = self.get(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 2853, in get
+    return self._get_impl(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 2975, in _get_impl
+    return db_load_fn(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/loading.py", line 530, in load_on_pk_identity
+    session.execute(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1716, in execute
+    conn = self._connection_for_bind(bind)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1555, in _connection_for_bind
+    return self._transaction._connection_for_bind(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 750, in _connection_for_bind
+    conn = bind.connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/future/engine.py", line 412, in connect
+    return super(Engine, self).connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3325, in connect
+    return self._connection_cls(self, close_with_result=close_with_result)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+    else engine.raw_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3404, in raw_connection
+    return self._wrap_pool_connect(self.pool.connect, _connection)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3374, in _wrap_pool_connect
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 2208, in _handle_dbapi_exception_noconnection
+    util.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not translate host name "postgres" to address: Temporary failure in name resolution
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+[2024-03-12T18:32:31.984+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-03-12T18:32:46.013+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='create_tables' AIRFLOW_CTX_EXECUTION_DATE='2024-03-12T18:08:05.335366+00:00' AIRFLOW_CTX_TRY_NUMBER='5' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-12T18:08:05.335366+00:00'
+[2024-03-12T18:32:46.044+0000] {sql.py:276} INFO - Executing: CREATE TABLE IF NOT EXISTS MRR_Dim_Customers(
+    Customer_ID varchar(255) NULL,
+    Company_Name varchar(255) NULL,
+    Contact_Name varchar(255) NULL,
+    Street varchar(255) NULL,
+    City varchar(255) NULL,
+    Postal_Code varchar(255) NULL,
+    Country varchar(255) NULL,
+    Phone varchar(255) NULL,
+    Fax varchar(255) NULL
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS MRR_Dim_Employees(
+    Employee_ID varchar(255) NULL,
+    Last_Name varchar(255) NULL,
+    First_Name varchar(255) NULL,
+    Title varchar(255) NULL,
+    Hire_Date varchar(255) NULL,
+    Office varchar(255) NULL,
+    Reports_To varchar(255) NULL,
+    Month_Salary varchar(255) NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
+    Product_ID varchar(255) NULL,
+    Product_Name varchar(255) NULL,
+    Supplier varchar(255) NULL,
+    Category varchar(255) NULL,
+    Unit_Price varchar(255) NULL,
+    Unit_Cost varchar(255) NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS  MRR_Fact_Details(
+    Order_ID varchar(255) NULL,
+    Product_ID varchar(255) NULL,
+    Quantity varchar(255) NULL
+);
+CREATE TABLE IF NOT EXISTS  MRR_Fact_Orders(
+    Order_ID varchar(255) NULL,
+    Order_Time varchar(255) NULL,
+    Customer_ID varchar(255) NULL,
+    Employee_ID varchar(255) NULL,
+    Shipper_ID varchar(255) NULL
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
+    Customer_ID int not null,
+    Company_Name varchar(50) not null,
+    Contact_Name varchar(50) not null,
+    Street varchar(50) not null,
+    City varchar(50) not null,
+    Postal_Code varchar(50) not null,
+    Country varchar(50) not null,
+    Phone varchar(50) not null,
+    Fax varchar(50) not null,
+    PRIMARY KEY (Customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Dates(
+    Date date not null,
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Day int not null,
+    PRIMARY KEY (Date)
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Employees(
+    Employee_ID int not null,
+    Last_Name varchar(50) not null,
+    First_Name varchar(50) not null,
+    Title varchar(50) not null,
+    Hire_Date date not null,
+    Office int not null,
+    Reports_To int NULL,
+    Month_Salary money not null,
+    PRIMARY KEY (Employee_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS STG_Dim_Products(
+    Product_ID int not null,
+    Product_Name varchar(50) not null,
+    Supplier int not null,
+    Category int not null,
+    Unit_Price money not null,
+    Unit_Cost money not null,
+    PRIMARY KEY (Product_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS STG_Dim_Time(
+    DateTime datetime not null,
+    Date date not null,
+    Hour time (7) not null,
+    PRIMARY KEY (DateTime)
+);
+
+
+CREATE TABLE IF NOT EXISTS STG_Fact_Product_In_Order(
+    Order_ID int not null,
+    Prdocut_ID int not null,
+    Prdocut_ID int not null,
+    Prdocut_ID int not null,
+    Order_Time datetime not null,
+    Quantity int not null,
+    Total_Price money not null,
+    Total_Cost money not null,
+    Shipper_ID int not null,
+    PRIMARY KEY (Order_ID,Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Customers(
+    DW_Customer_ID int IDENTITY(1,1) not null,
+    Customer_ID int not null,
+    Company_Name varchar(50) not null,
+    Contact_Name varchar(50) not null,
+    Street varchar(50) not null,
+    City varchar(50) not null,
+    Postal_Code varchar(50) not null,
+    Country varchar(50) not null,
+    Phone varchar(50) not null,
+    Fax varchar(50) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date NULL,
+    PRIMARY KEY (DW_Customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS  DWH_Dim_Dates(
+    Date date not null,
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Day int not null,
+    PRIMARY KEY (Date)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Employees(
+    DW_Employee_ID int IDENTITY(1,1) not null,
+    Employee_ID int not null,
+    Last_Name varchar(50) not null,
+    First_Name varchar(50) not null,
+    Title varchar(50) not null,
+    Hire_Date date not null,
+    Office int not null,
+    Reports_To int NULL,
+    Month_Salary money not null,
+    Valid_From date not null default current_date,
+    Valid_Until date NULL,
+    PRIMARY KEY (DW_Employee_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Products(
+    DW_Prdocut_ID int IDENTITY(1,1) not null,
+    Product_ID int not null,
+    Product_Name varchar(50) not null,
+    Supplier int not null,
+    Category int not null,
+    Unit_Price money not null,
+    Unit_Cost money not null,
+    Valid_From date not null default current_date,
+    Valid_Until date NULL,
+    PRIMARY KEY (DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order(
+    Order_ID int not null,
+    DW_Prdocut_ID int not null,
+    DW_Customer_ID int not null,
+    DW_Employee_ID int not null,
+    Order_Time datetime not null,
+    Quantity int not null,
+    Total_Price money not null,
+    Total_Cost money not null,
+    Shipper_ID int not null,
+    PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Time(
+    DateTime datetime not null,
+    Date date not null,
+    Hour time(7) not null,
+    PRIMARY KEY (DateTime)
+);
+CREATE TABLE IF NOT EXISTS Snapshot_Customers_Transactions_Arch(
+    DW_Customer_ID int not null,
+    Year int not null,
+    Month int not null,
+    Status varchar(10) not null
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions(
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Country varchar(50) not null,
+    City varchar(50) not null,
+    Count_New_Customers int not null,
+    Count_Regular int not null,
+    Count_Reactivated int not null,
+    Count_Abandons int not null,
+    Count_Total int not null,
+    PRIMARY KEY (Year, Quarter, Month, Country, City)
+);
+
+
+
+
+
+
+
+
+
+
+[2024-03-12T18:32:56.912+0000] {connection.py:508} ERROR - Unable to retrieve connection from secrets backend (MetastoreBackend). Checking subsequent secrets backend.
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/connection.py", line 503, in get_connection_from_secrets
+    conn = secrets_backend.get_connection(conn_id=conn_id)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/utils/session.py", line 79, in wrapper
+    return func(*args, session=session, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/secrets/metastore.py", line 42, in get_connection
+    return MetastoreBackend._fetch_connection(conn_id, session=session)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/api_internal/internal_api_call.py", line 114, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/utils/session.py", line 76, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/secrets/metastore.py", line 73, in _fetch_connection
+    conn = session.scalar(select(Connection).where(Connection.conn_id == conn_id).limit(1))
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1747, in scalar
+    return self.execute(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1716, in execute
+    conn = self._connection_for_bind(bind)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1555, in _connection_for_bind
+    return self._transaction._connection_for_bind(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 750, in _connection_for_bind
+    conn = bind.connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/future/engine.py", line 412, in connect
+    return super(Engine, self).connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3325, in connect
+    return self._connection_cls(self, close_with_result=close_with_result)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+    else engine.raw_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3404, in raw_connection
+    return self._wrap_pool_connect(self.pool.connect, _connection)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3374, in _wrap_pool_connect
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 2208, in _handle_dbapi_exception_noconnection
+    util.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not translate host name "postgres" to address: Temporary failure in name resolution
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+[2024-03-12T18:33:03.617+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 277, in execute
+    hook = self.get_db_hook()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 188, in get_db_hook
+    return self._hook
+  File "/usr/local/lib/python3.8/functools.py", line 967, in __get__
+    val = self.func(instance)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 150, in _hook
+    conn = BaseHook.get_connection(conn_id)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/hooks/base.py", line 82, in get_connection
+    conn = Connection.get_connection_from_secrets(conn_id)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/connection.py", line 514, in get_connection_from_secrets
+    raise AirflowNotFoundException(f"The conn_id `{conn_id}` isn't defined")
+airflow.exceptions.AirflowNotFoundException: The conn_id `postgres_localhost` isn't defined
+[2024-03-12T18:33:03.682+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=create_tables, execution_date=20240312T180805, start_date=20240312T183207, end_date=20240312T183303
+[2024-03-12T18:33:03.900+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 1029 for task create_tables (The conn_id `postgres_localhost` isn't defined; 419)

@@ -1,0 +1,216 @@
+[2024-03-16T06:46:34.590+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh manual__2024-03-15T14:29:04.519731+00:00 [queued]>
+[2024-03-16T06:46:34.619+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh manual__2024-03-15T14:29:04.519731+00:00 [queued]>
+[2024-03-16T06:46:34.620+0000] {taskinstance.py:2193} INFO - Starting attempt 12 of 12
+[2024-03-16T06:46:34.663+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dim_stg2dwh> on 2024-03-15 14:29:04.519731+00:00
+[2024-03-16T06:46:34.698+0000] {standard_task_runner.py:60} INFO - Started process 415 to run task
+[2024-03-16T06:46:34.719+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dim_stg2dwh', 'manual__2024-03-15T14:29:04.519731+00:00', '--job-id', '1706', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmp2jqumo8s']
+[2024-03-16T06:46:34.729+0000] {standard_task_runner.py:88} INFO - Job 1706: Subtask dim_stg2dwh
+[2024-03-16T06:46:34.885+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dim_stg2dwh manual__2024-03-15T14:29:04.519731+00:00 [running]> on host 3f630fdac388
+[2024-03-16T06:46:35.636+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dim_stg2dwh' AIRFLOW_CTX_EXECUTION_DATE='2024-03-15T14:29:04.519731+00:00' AIRFLOW_CTX_TRY_NUMBER='12' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-15T14:29:04.519731+00:00'
+[2024-03-16T06:46:35.640+0000] {sql.py:276} INFO - Executing: truncate table STG_Dim_Dates;
+truncate table STG_Dim_Time;
+
+insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates;
+
+insert into DWH_Dim_Time (DateTime,Date,Hour)
+select * 
+from STG_Dim_Time;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
+select *
+from STG_Dim_Customers c
+where Customer_ID not in (
+    select distinct Customer_ID
+    from DWH_Dim_Customers
+);
+
+
+
+--update the valid until date of customers who moved to another city/country
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.City <> d.City or s.Country <> d.Country) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another city/country                             
+insert into DWH_Dim_Customers (Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
+select s.Customer_ID,s.Company_Name,s.Contact_Name,s.Street,s.City,s.Postal_Code,s.Country,s.Phone,s.Fax
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.City <> d.City or s.Country <> d.Country;
+
+-- -products
+
+-- insert all the new products records 
+-- insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+-- select *
+-- from STG_Dim_Products 
+-- where Product_ID not in 
+--                             (
+--                               select distinct Product_ID
+--                               from DWH_Dim_Products       
+--                             );
+-- update the valid until date of products that their price/cost/supplier changed
+-- update DWH_Dim_Products
+-- set Valid_Until=current_date
+-- from 
+--     (
+--     select *
+--     from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+--     where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier
+--     ) src
+-- where Product_ID=src.Product_ID and Valid_Until is null
+
+-- insert records of products that their price/cost/supplier changed                             
+-- insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+-- select *
+-- from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+-- where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier
+
+-- -employees
+
+-- insert all the new employees records 
+-- insert into DWH_Dim_Employees (Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)
+-- select *
+-- from STG_Dim_Employees 
+-- where Employee_ID not in 
+--                             (
+--                               select distinct Employee_ID
+--                               from DWH_Dim_Employees       
+--                             );
+-- update the valid until date of employees that their salary/title/manager/office changed
+-- update DWH_Dim_Employees
+-- set Valid_Until=current_date
+-- from 
+--     (
+--     select *
+--     from STG_Dim_Products s inner join DWH_Dim_Employees d on d.Employee_ID = s.Employee_ID
+--     where s.Reports_To <> d.Reports_To or s.title <> d.title or 
+--           s.Month_Salary <> d.Month_Salary or s.office <> d.office
+--     ) src
+-- where Employee_ID=src.Employee_ID and Valid_Until is null
+
+-- insert records of products that their price/cost/supplier changed                             
+-- insert into DWH_Dim_Employees (Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)
+-- select *
+-- from STG_Dim_Employees s inner join DWH_Dim_Employees d on d.Employee_ID=s.Employee_ID
+-- where s.Reports_To <> d.Reports_To or s.title <> d.title or 
+--       s.Month_Salary <> d.Month_Salary or s.office <> d.office
+
+
+[2024-03-16T06:46:35.682+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-16T06:46:35.734+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-16T06:46:35.853+0000] {sql.py:457} INFO - Running statement: truncate table STG_Dim_Dates;
+truncate table STG_Dim_Time;
+
+insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates;
+
+insert into DWH_Dim_Time (DateTime,Date,Hour)
+select * 
+from STG_Dim_Time;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
+select *
+from STG_Dim_Customers c
+where Customer_ID not in (
+    select distinct Customer_ID
+    from DWH_Dim_Customers
+);
+
+
+
+--update the valid until date of customers who moved to another city/country
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.City <> d.City or s.Country <> d.Country) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another city/country                             
+insert into DWH_Dim_Customers (Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
+select s.Customer_ID,s.Company_Name,s.Contact_Name,s.Street,s.City,s.Postal_Code,s.Country,s.Phone,s.Fax
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.City <> d.City or s.Country <> d.Country;
+
+-- -products
+
+-- insert all the new products records 
+-- insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+-- select *
+-- from STG_Dim_Products 
+-- where Product_ID not in 
+--                             (
+--                               select distinct Product_ID
+--                               from DWH_Dim_Products       
+--                             );
+-- update the valid until date of products that their price/cost/supplier changed
+-- update DWH_Dim_Products
+-- set Valid_Until=current_date
+-- from 
+--     (
+--     select *
+--     from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+--     where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier
+--     ) src
+-- where Product_ID=src.Product_ID and Valid_Until is null
+
+-- insert records of products that their price/cost/supplier changed                             
+-- insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+-- select *
+-- from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+-- where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier
+
+-- -employees
+
+-- insert all the new employees records 
+-- insert into DWH_Dim_Employees (Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)
+-- select *
+-- from STG_Dim_Employees 
+-- where Employee_ID not in 
+--                             (
+--                               select distinct Employee_ID
+--                               from DWH_Dim_Employees       
+--                             );
+-- update the valid until date of employees that their salary/title/manager/office changed
+-- update DWH_Dim_Employees
+-- set Valid_Until=current_date
+-- from 
+--     (
+--     select *
+--     from STG_Dim_Products s inner join DWH_Dim_Employees d on d.Employee_ID = s.Employee_ID
+--     where s.Reports_To <> d.Reports_To or s.title <> d.title or 
+--           s.Month_Salary <> d.Month_Salary or s.office <> d.office
+--     ) src
+-- where Employee_ID=src.Employee_ID and Valid_Until is null
+
+-- insert records of products that their price/cost/supplier changed                             
+-- insert into DWH_Dim_Employees (Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)
+-- select *
+-- from STG_Dim_Employees s inner join DWH_Dim_Employees d on d.Employee_ID=s.Employee_ID
+-- where s.Reports_To <> d.Reports_To or s.title <> d.title or 
+--       s.Month_Salary <> d.Month_Salary or s.office <> d.office
+
+, parameters: None
+[2024-03-16T06:46:35.927+0000] {sql.py:466} INFO - Rows affected: 0
+[2024-03-16T06:46:35.934+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/providers/common/sql/hooks/sql.py:407: AirflowProviderDeprecationWarning: Call to deprecated method _make_common_data_structure. (The `_make_serializable` method is deprecated and support will be removed in a future version of the common.sql provider. Please update the DbApiHook's provider to a version based on common.sql >= 1.9.1.)
+  result = self._make_common_data_structure(handler(cur))
+
+[2024-03-16T06:46:36.026+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=dim_stg2dwh, execution_date=20240315T142904, start_date=20240316T064634, end_date=20240316T064636
+[2024-03-16T06:46:36.180+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-03-16T06:46:36.248+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

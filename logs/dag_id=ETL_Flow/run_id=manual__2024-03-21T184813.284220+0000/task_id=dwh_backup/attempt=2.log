@@ -1,0 +1,91 @@
+[2024-03-21T19:00:59.968+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dwh_backup manual__2024-03-21T18:48:13.284220+00:00 [queued]>
+[2024-03-21T19:00:59.983+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dwh_backup manual__2024-03-21T18:48:13.284220+00:00 [queued]>
+[2024-03-21T19:00:59.984+0000] {taskinstance.py:2193} INFO - Starting attempt 2 of 7
+[2024-03-21T19:01:00.011+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dwh_backup> on 2024-03-21 18:48:13.284220+00:00
+[2024-03-21T19:01:00.022+0000] {standard_task_runner.py:60} INFO - Started process 408 to run task
+[2024-03-21T19:01:00.026+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dwh_backup', 'manual__2024-03-21T18:48:13.284220+00:00', '--job-id', '2104', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpf5j20ph_']
+[2024-03-21T19:01:00.030+0000] {standard_task_runner.py:88} INFO - Job 2104: Subtask dwh_backup
+[2024-03-21T19:01:00.091+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dwh_backup manual__2024-03-21T18:48:13.284220+00:00 [running]> on host 87d0282d7958
+[2024-03-21T19:01:00.739+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dwh_backup' AIRFLOW_CTX_EXECUTION_DATE='2024-03-21T18:48:13.284220+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-21T18:48:13.284220+00:00'
+[2024-03-21T19:01:00.740+0000] {sql.py:276} INFO - Executing: truncate table DWH_Dim_Products_Backup;
+truncate table DWH_Dim_Customers_Backup;
+truncate table DWH_Dim_Employees_Backup;
+truncate table DWH_Dim_Dates_Backup;
+truncate table DWH_Dim_Time_Backup;
+truncate table DWH_Fact_Product_In_Order_Backup;
+truncate table DWH_Snapshot_Customers_Transactions_Backup;
+
+
+insert into DWH_Dim_Products_Backup(DW_Prdocut_ID,Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,Valid_From,Valid_Until)
+select * from DWH_Dim_Products;
+
+
+insert into DWH_Dim_Customers_Backup(DW_Customer_ID,Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax,Valid_From,Valid_Until)
+select * from DWH_Dim_Customers;
+
+
+insert into DWH_Dim_Employees_Backup(DW_Employee_ID,Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary,Valid_From,Valid_Until)
+select * from DWH_Dim_Employees;
+
+
+insert into DWH_Dim_Dates_Backup(Date,Year,Quarter,Month,Day)
+select * from DWH_Dim_Dates;
+
+
+insert into DWH_Dim_Time_Backup(timestamp,Date,Hour)
+select * from DWH_Dim_Time;
+
+
+insert into DWH_Fact_Product_In_Order_Backup(Order_ID,DW_Prdocut_ID,DW_Customer_ID,DW_Employee_ID,Order_Time,Quantity,Total_Price, Total_Cost,Shipper_ID)
+select * from DWH_Fact_Product_In_Order;
+
+
+insert into DWH_Snapshot_Customers_Transactions_Backup(Year,Quarter,Month,Country,City,Count_New_Customers,Count_Regular,Count_Reactivated,Count_Abandons,Count_Total)
+select * from DWH_Snapshot_Customers_Transactions;
+[2024-03-21T19:01:00.761+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-21T19:01:00.778+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-21T19:01:00.808+0000] {sql.py:457} INFO - Running statement: truncate table DWH_Dim_Products_Backup;
+truncate table DWH_Dim_Customers_Backup;
+truncate table DWH_Dim_Employees_Backup;
+truncate table DWH_Dim_Dates_Backup;
+truncate table DWH_Dim_Time_Backup;
+truncate table DWH_Fact_Product_In_Order_Backup;
+truncate table DWH_Snapshot_Customers_Transactions_Backup;
+
+
+insert into DWH_Dim_Products_Backup(DW_Prdocut_ID,Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,Valid_From,Valid_Until)
+select * from DWH_Dim_Products;
+
+
+insert into DWH_Dim_Customers_Backup(DW_Customer_ID,Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax,Valid_From,Valid_Until)
+select * from DWH_Dim_Customers;
+
+
+insert into DWH_Dim_Employees_Backup(DW_Employee_ID,Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary,Valid_From,Valid_Until)
+select * from DWH_Dim_Employees;
+
+
+insert into DWH_Dim_Dates_Backup(Date,Year,Quarter,Month,Day)
+select * from DWH_Dim_Dates;
+
+
+insert into DWH_Dim_Time_Backup(timestamp,Date,Hour)
+select * from DWH_Dim_Time;
+
+
+insert into DWH_Fact_Product_In_Order_Backup(Order_ID,DW_Prdocut_ID,DW_Customer_ID,DW_Employee_ID,Order_Time,Quantity,Total_Price, Total_Cost,Shipper_ID)
+select * from DWH_Fact_Product_In_Order;
+
+
+insert into DWH_Snapshot_Customers_Transactions_Backup(Year,Quarter,Month,Country,City,Count_New_Customers,Count_Regular,Count_Reactivated,Count_Abandons,Count_Total)
+select * from DWH_Snapshot_Customers_Transactions;, parameters: None
+[2024-03-21T19:01:00.852+0000] {sql.py:466} INFO - Rows affected: 0
+[2024-03-21T19:01:00.854+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/providers/common/sql/hooks/sql.py:407: AirflowProviderDeprecationWarning: Call to deprecated method _make_common_data_structure. (The `_make_serializable` method is deprecated and support will be removed in a future version of the common.sql provider. Please update the DbApiHook's provider to a version based on common.sql >= 1.9.1.)
+  result = self._make_common_data_structure(handler(cur))
+
+[2024-03-21T19:01:00.884+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=dwh_backup, execution_date=20240321T184813, start_date=20240321T190059, end_date=20240321T190100
+[2024-03-21T19:01:00.966+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-03-21T19:01:01.017+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-03-21T19:01:01.065+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

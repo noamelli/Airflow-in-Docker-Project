@@ -1,0 +1,66 @@
+[2024-03-09T14:13:09.559+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dag_with_postgres_operator.create_postgres_table scheduled__2024-02-29T00:00:00+00:00 [queued]>
+[2024-03-09T14:13:09.581+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dag_with_postgres_operator.create_postgres_table scheduled__2024-02-29T00:00:00+00:00 [queued]>
+[2024-03-09T14:13:09.583+0000] {taskinstance.py:2193} INFO - Starting attempt 2 of 6
+[2024-03-09T14:13:09.612+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): create_postgres_table> on 2024-02-29 00:00:00+00:00
+[2024-03-09T14:13:09.623+0000] {standard_task_runner.py:60} INFO - Started process 2170 to run task
+[2024-03-09T14:13:09.630+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'dag_with_postgres_operator', 'create_postgres_table', 'scheduled__2024-02-29T00:00:00+00:00', '--job-id', '201', '--raw', '--subdir', 'DAGS_FOLDER/etl_pipeline.py', '--cfg-path', '/tmp/tmp_6ad6k__']
+[2024-03-09T14:13:09.633+0000] {standard_task_runner.py:88} INFO - Job 201: Subtask create_postgres_table
+[2024-03-09T14:13:09.749+0000] {task_command.py:423} INFO - Running <TaskInstance: dag_with_postgres_operator.create_postgres_table scheduled__2024-02-29T00:00:00+00:00 [running]> on host 3b9d9f11e4f2
+[2024-03-09T14:13:09.924+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='dag_with_postgres_operator' AIRFLOW_CTX_TASK_ID='create_postgres_table' AIRFLOW_CTX_EXECUTION_DATE='2024-02-29T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-02-29T00:00:00+00:00'
+[2024-03-09T14:13:09.926+0000] {sql.py:276} INFO - Executing: create table if not exists dag_runs(
+                    dt date,
+                    dag_id character varying,
+                    primary key (dt, dag_id);
+
+
+                create table if not exists dag_runs2(
+                    dt date,
+                    dag_id character varying,
+                    primary key (dt, dag_id);
+
+
+
+
+        )
+        
+[2024-03-09T14:13:09.946+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-09T14:13:09.968+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-09T14:13:09.996+0000] {sql.py:457} INFO - Running statement: create table if not exists dag_runs(
+                    dt date,
+                    dag_id character varying,
+                    primary key (dt, dag_id);
+
+
+                create table if not exists dag_runs2(
+                    dt date,
+                    dag_id character varying,
+                    primary key (dt, dag_id);
+
+
+
+
+        )
+        , parameters: None
+[2024-03-09T14:13:10.006+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.SyntaxError: syntax error at or near ";"
+LINE 4:                     primary key (dt, dag_id);
+                                                    ^
+
+[2024-03-09T14:13:10.027+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=dag_with_postgres_operator, task_id=create_postgres_table, execution_date=20240229T000000, start_date=20240309T141309, end_date=20240309T141310
+[2024-03-09T14:13:10.053+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 201 for task create_postgres_table (syntax error at or near ";"
+LINE 4:                     primary key (dt, dag_id);
+                                                    ^
+; 2170)
+[2024-03-09T14:13:10.087+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-09T14:13:10.130+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

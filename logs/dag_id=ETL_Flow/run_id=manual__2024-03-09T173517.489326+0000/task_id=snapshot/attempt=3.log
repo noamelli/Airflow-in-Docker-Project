@@ -1,0 +1,130 @@
+[2024-03-12T17:39:48.333+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.snapshot manual__2024-03-09T17:35:17.489326+00:00 [queued]>
+[2024-03-12T17:39:48.351+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.snapshot manual__2024-03-09T17:35:17.489326+00:00 [queued]>
+[2024-03-12T17:39:48.353+0000] {taskinstance.py:2193} INFO - Starting attempt 3 of 6
+[2024-03-12T17:39:48.394+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): snapshot> on 2024-03-09 17:35:17.489326+00:00
+[2024-03-12T17:39:48.405+0000] {standard_task_runner.py:60} INFO - Started process 744 to run task
+[2024-03-12T17:39:48.415+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'snapshot', 'manual__2024-03-09T17:35:17.489326+00:00', '--job-id', '648', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmp9xa0ktb7']
+[2024-03-12T17:39:48.419+0000] {standard_task_runner.py:88} INFO - Job 648: Subtask snapshot
+[2024-03-12T17:39:48.544+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.snapshot manual__2024-03-09T17:35:17.489326+00:00 [running]> on host e2878ba2ad26
+[2024-03-12T17:39:48.742+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='snapshot' AIRFLOW_CTX_EXECUTION_DATE='2024-03-09T17:35:17.489326+00:00' AIRFLOW_CTX_TRY_NUMBER='3' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-09T17:35:17.489326+00:00'
+[2024-03-12T17:39:48.744+0000] {sql.py:276} INFO - Executing: --last_run_date is the last date the program ran succefully 
+@current_month =  EXTRACT(month from last_run_date);
+@current_year =  EXTRACT(year from last_run_date);
+
+
+create or replace view Snapshot_Customers_Transactions_Temp as
+select distinct 
+customerId,
+date,
+case when (
+            select min (valid_from) 
+            from DWH_Dim_Customers u 
+            where u.Customer_ID=c.Customer_ID
+            ) = @current_month 
+     and (
+            select count (*) 
+            from DWH_Dim_Customers u 
+            where u.Customer_ID=c.Customer_ID
+            group by u.Customer_ID
+            ) = 1 then 'new'
+     when (
+            select p.customerId 
+            from DWH_Fact_Product_In_Order p 
+            where p.Customer_ID = c.Customer_ID and month(Order_Time) in (@current_month, @current_month-1,@current_month-2) 
+            ) is null then 'left'
+	 when ( --think of a better logic 
+            select top 1 s.status 
+            from Snapshot_Customers_Transactions_Arch s 
+            where s.Customer_ID = c.Customer_ID 
+            order by month, year desc 
+            )='left' 
+	 and (
+            select top 1 s.month 
+            from Snapshot_Customers_Transactions_Arch s 
+            where s.Customer_ID = c.Customer_ID 
+            order by month, year desc 
+            )  <@current_month then 'reactivated' 
+	 else 'regular' as 'status'
+from DWH_Dim_Customers c;
+
+insert into Snapshot_Customers_Transactions_Arch (Customer_ID, Month, Year)
+select * 
+from Snapshot_Customers_Transactions_Temp t
+where (a.Customer_ID, a.Month, a.Year) not in ( select distinct a.Customer_ID, a.Month, a.Year
+                                                from Snapshot_Customers_Transactions_Arch a
+                                                );
+
+
+[2024-03-12T17:39:48.765+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-12T17:39:48.793+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-12T17:39:48.823+0000] {sql.py:457} INFO - Running statement: --last_run_date is the last date the program ran succefully 
+@current_month =  EXTRACT(month from last_run_date);
+@current_year =  EXTRACT(year from last_run_date);
+
+
+create or replace view Snapshot_Customers_Transactions_Temp as
+select distinct 
+customerId,
+date,
+case when (
+            select min (valid_from) 
+            from DWH_Dim_Customers u 
+            where u.Customer_ID=c.Customer_ID
+            ) = @current_month 
+     and (
+            select count (*) 
+            from DWH_Dim_Customers u 
+            where u.Customer_ID=c.Customer_ID
+            group by u.Customer_ID
+            ) = 1 then 'new'
+     when (
+            select p.customerId 
+            from DWH_Fact_Product_In_Order p 
+            where p.Customer_ID = c.Customer_ID and month(Order_Time) in (@current_month, @current_month-1,@current_month-2) 
+            ) is null then 'left'
+	 when ( --think of a better logic 
+            select top 1 s.status 
+            from Snapshot_Customers_Transactions_Arch s 
+            where s.Customer_ID = c.Customer_ID 
+            order by month, year desc 
+            )='left' 
+	 and (
+            select top 1 s.month 
+            from Snapshot_Customers_Transactions_Arch s 
+            where s.Customer_ID = c.Customer_ID 
+            order by month, year desc 
+            )  <@current_month then 'reactivated' 
+	 else 'regular' as 'status'
+from DWH_Dim_Customers c;
+
+insert into Snapshot_Customers_Transactions_Arch (Customer_ID, Month, Year)
+select * 
+from Snapshot_Customers_Transactions_Temp t
+where (a.Customer_ID, a.Month, a.Year) not in ( select distinct a.Customer_ID, a.Month, a.Year
+                                                from Snapshot_Customers_Transactions_Arch a
+                                                );
+
+, parameters: None
+[2024-03-12T17:39:48.837+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.SyntaxError: syntax error at or near "@"
+LINE 2: @current_month =  EXTRACT(month from last_run_date);
+        ^
+
+[2024-03-12T17:39:48.864+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=snapshot, execution_date=20240309T173517, start_date=20240312T173948, end_date=20240312T173948
+[2024-03-12T17:39:48.890+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 648 for task snapshot (syntax error at or near "@"
+LINE 2: @current_month =  EXTRACT(month from last_run_date);
+        ^
+; 744)
+[2024-03-12T17:39:48.910+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-12T17:39:48.967+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

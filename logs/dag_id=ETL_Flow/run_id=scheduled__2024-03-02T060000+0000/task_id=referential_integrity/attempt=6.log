@@ -1,0 +1,13 @@
+[2024-03-12T17:47:48.241+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.referential_integrity scheduled__2024-03-02T06:00:00+00:00 [queued]>
+[2024-03-12T17:47:48.558+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.referential_integrity scheduled__2024-03-02T06:00:00+00:00 [queued]>
+[2024-03-12T17:47:48.560+0000] {taskinstance.py:2193} INFO - Starting attempt 6 of 6
+[2024-03-12T17:47:49.002+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): referential_integrity> on 2024-03-02 06:00:00+00:00
+[2024-03-12T17:47:49.082+0000] {standard_task_runner.py:60} INFO - Started process 1204 to run task
+[2024-03-12T17:47:49.382+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'referential_integrity', 'scheduled__2024-03-02T06:00:00+00:00', '--job-id', '810', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpw29bpo49']
+[2024-03-12T17:47:49.528+0000] {standard_task_runner.py:88} INFO - Job 810: Subtask referential_integrity
+[2024-03-12T17:47:51.657+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.referential_integrity scheduled__2024-03-02T06:00:00+00:00 [running]> on host e2878ba2ad26
+[2024-03-12T17:48:04.459+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 810 for task referential_integrity ((psycopg2.OperationalError) could not translate host name "postgres" to address: Temporary failure in name resolution
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8); 1204)
+[2024-03-12T17:48:05.974+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-12T17:48:06.150+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

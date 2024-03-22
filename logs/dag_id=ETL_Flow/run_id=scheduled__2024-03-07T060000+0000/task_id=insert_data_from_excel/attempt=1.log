@@ -1,0 +1,34 @@
+[2024-03-12T17:57:57.165+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.insert_data_from_excel scheduled__2024-03-07T06:00:00+00:00 [queued]>
+[2024-03-12T17:57:57.205+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.insert_data_from_excel scheduled__2024-03-07T06:00:00+00:00 [queued]>
+[2024-03-12T17:57:57.207+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-03-12T17:57:57.272+0000] {taskinstance.py:2214} INFO - Executing <Task(PythonOperator): insert_data_from_excel> on 2024-03-07 06:00:00+00:00
+[2024-03-12T17:57:57.300+0000] {standard_task_runner.py:60} INFO - Started process 1638 to run task
+[2024-03-12T17:57:57.392+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'insert_data_from_excel', 'scheduled__2024-03-07T06:00:00+00:00', '--job-id', '874', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpbxw7caa1']
+[2024-03-12T17:57:57.436+0000] {standard_task_runner.py:88} INFO - Job 874: Subtask insert_data_from_excel
+[2024-03-12T17:57:57.758+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.insert_data_from_excel scheduled__2024-03-07T06:00:00+00:00 [running]> on host e2878ba2ad26
+[2024-03-12T17:58:15.663+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='insert_data_from_excel' AIRFLOW_CTX_EXECUTION_DATE='2024-03-07T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-07T06:00:00+00:00'
+[2024-03-12T17:58:15.731+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 200, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 217, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/etl2.py", line 25, in insert_data_from_excel
+    df = pd.read_excel(file_path)
+  File "/home/airflow/.local/lib/python3.8/site-packages/pandas/io/excel/_base.py", line 478, in read_excel
+    io = ExcelFile(io, storage_options=storage_options, engine=engine)
+  File "/home/airflow/.local/lib/python3.8/site-packages/pandas/io/excel/_base.py", line 1496, in __init__
+    ext = inspect_excel_format(
+  File "/home/airflow/.local/lib/python3.8/site-packages/pandas/io/excel/_base.py", line 1371, in inspect_excel_format
+    with get_handle(
+  File "/home/airflow/.local/lib/python3.8/site-packages/pandas/io/common.py", line 868, in get_handle
+    handle = open(handle, ioargs.mode)
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\Gstat\\Downloads\\customers.xlsx'
+[2024-03-12T17:58:15.908+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=insert_data_from_excel, execution_date=20240307T060000, start_date=20240312T175757, end_date=20240312T175815
+[2024-03-12T17:58:16.155+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 874 for task insert_data_from_excel ([Errno 2] No such file or directory: 'C:\\Users\\Gstat\\Downloads\\customers.xlsx'; 1638)
+[2024-03-12T17:58:16.240+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-12T17:58:16.903+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

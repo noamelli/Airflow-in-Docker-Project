@@ -1,0 +1,1 @@
+[2024-03-09T14:07:22.900+0000] {scheduler_job_runner.py:781} ERROR - Executor reports task instance <TaskInstance: Sales_ETL.dwh_backup manual__2024-03-09T14:07:10.158065+00:00 [queued]> finished (failed) although the task says it's queued. (Info: None) Was the task killed externally?

@@ -1,0 +1,100 @@
+[2024-03-09T17:31:13.734+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dwh_backup scheduled__2024-03-06T06:00:00+00:00 [queued]>
+[2024-03-09T17:31:13.786+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dwh_backup scheduled__2024-03-06T06:00:00+00:00 [queued]>
+[2024-03-09T17:31:13.792+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-03-09T17:31:13.877+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dwh_backup> on 2024-03-06 06:00:00+00:00
+[2024-03-09T17:31:13.910+0000] {standard_task_runner.py:60} INFO - Started process 3452 to run task
+[2024-03-09T17:31:13.931+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dwh_backup', 'scheduled__2024-03-06T06:00:00+00:00', '--job-id', '310', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpq80buepf']
+[2024-03-09T17:31:13.939+0000] {standard_task_runner.py:88} INFO - Job 310: Subtask dwh_backup
+[2024-03-09T17:31:14.286+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dwh_backup scheduled__2024-03-06T06:00:00+00:00 [running]> on host 3b9d9f11e4f2
+[2024-03-09T17:31:14.674+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dwh_backup' AIRFLOW_CTX_EXECUTION_DATE='2024-03-06T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-06T06:00:00+00:00'
+[2024-03-09T17:31:14.682+0000] {sql.py:276} INFO - Executing: truncate table DWH_Dim_Products_Backup;
+truncate table DWH_Dim_Customers_Backup;
+truncate table DWH_Dim_Employees_Backup;
+truncate table DWH_Dim_Dates_Backup;
+truncate table DWH_Dim_Time_Backup;
+truncate table DWH_Fact_Product_In_Order_Backup;
+truncate table DWH_Snapshot_Customers_Transactions_Backup;
+
+
+insert into DWH_Dim_Products_Backup(DW_Prdocut_ID,Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,Valid_From,Valid_Until)
+select * from DWH_Dim_Products;
+
+
+insert into DWH_Dim_Customers_Backup(DW_Customer_ID,Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax,Valid_From,Valid_Until)
+select * from DWH_Dim_Customers;
+
+
+insert into DWH_Dim_Employees_Backup(DW_Employee_ID,Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary,Valid_From,Valid_Until)
+select * from DWH_Dim_Employees;
+
+
+insert into DWH_Dim_Dates_Backup(Date,Year,Quarter,Month,Day)
+select * from DWH_Dim_Dates;
+
+
+insert into DWH_Dim_Time_Backup(DateTime,Date,Hour)
+select * from DWH_Dim_Time;
+
+
+insert into DWH_Fact_Product_In_Order_Backup(Order_ID,DW_Prdocut_ID,DW_Customer_ID,DW_Employee_ID,Order_Time,Quantity,Total_Price, Total_Cost,Shipper_ID,Create_Date)
+select * from DWH_Fact_Product_In_Order;
+
+
+insert into DWH_Snapshot_Customers_Transactions_Backup(Year,Quarter,Month,Country,City,Count_New_Customers,Count_Regular,Count_Reactivated,Count_Abandons,Count_Total)
+select * from DWH_Snapshot_Customers;
+[2024-03-09T17:31:14.760+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-09T17:31:14.835+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-09T17:31:14.942+0000] {sql.py:457} INFO - Running statement: truncate table DWH_Dim_Products_Backup;
+truncate table DWH_Dim_Customers_Backup;
+truncate table DWH_Dim_Employees_Backup;
+truncate table DWH_Dim_Dates_Backup;
+truncate table DWH_Dim_Time_Backup;
+truncate table DWH_Fact_Product_In_Order_Backup;
+truncate table DWH_Snapshot_Customers_Transactions_Backup;
+
+
+insert into DWH_Dim_Products_Backup(DW_Prdocut_ID,Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,Valid_From,Valid_Until)
+select * from DWH_Dim_Products;
+
+
+insert into DWH_Dim_Customers_Backup(DW_Customer_ID,Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax,Valid_From,Valid_Until)
+select * from DWH_Dim_Customers;
+
+
+insert into DWH_Dim_Employees_Backup(DW_Employee_ID,Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary,Valid_From,Valid_Until)
+select * from DWH_Dim_Employees;
+
+
+insert into DWH_Dim_Dates_Backup(Date,Year,Quarter,Month,Day)
+select * from DWH_Dim_Dates;
+
+
+insert into DWH_Dim_Time_Backup(DateTime,Date,Hour)
+select * from DWH_Dim_Time;
+
+
+insert into DWH_Fact_Product_In_Order_Backup(Order_ID,DW_Prdocut_ID,DW_Customer_ID,DW_Employee_ID,Order_Time,Quantity,Total_Price, Total_Cost,Shipper_ID,Create_Date)
+select * from DWH_Fact_Product_In_Order;
+
+
+insert into DWH_Snapshot_Customers_Transactions_Backup(Year,Quarter,Month,Country,City,Count_New_Customers,Count_Regular,Count_Reactivated,Count_Abandons,Count_Total)
+select * from DWH_Snapshot_Customers;, parameters: None
+[2024-03-09T17:31:14.987+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UndefinedTable: relation "dwh_dim_products_backup" does not exist
+
+[2024-03-09T17:31:15.049+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=dwh_backup, execution_date=20240306T060000, start_date=20240309T173113, end_date=20240309T173115
+[2024-03-09T17:31:15.109+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 310 for task dwh_backup (relation "dwh_dim_products_backup" does not exist
+; 3452)
+[2024-03-09T17:31:15.147+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-09T17:31:18.255+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

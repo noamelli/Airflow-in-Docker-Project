@@ -1,0 +1,25 @@
+[2024-03-12T17:57:45.170+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.create_tables scheduled__2024-03-07T06:00:00+00:00 [queued]>
+[2024-03-12T17:57:45.278+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.create_tables scheduled__2024-03-07T06:00:00+00:00 [queued]>
+[2024-03-12T17:57:45.280+0000] {taskinstance.py:2193} INFO - Starting attempt 6 of 6
+[2024-03-12T17:57:45.472+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): create_tables> on 2024-03-07 06:00:00+00:00
+[2024-03-12T17:57:45.591+0000] {standard_task_runner.py:60} INFO - Started process 1631 to run task
+[2024-03-12T17:57:45.607+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'create_tables', 'scheduled__2024-03-07T06:00:00+00:00', '--job-id', '873', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpnly7pcj9']
+[2024-03-12T17:57:45.678+0000] {standard_task_runner.py:88} INFO - Job 873: Subtask create_tables
+[2024-03-12T17:57:46.188+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.create_tables scheduled__2024-03-07T06:00:00+00:00 [running]> on host e2878ba2ad26
+[2024-03-12T17:57:49.120+0000] {abstractoperator.py:707} ERROR - Exception rendering Jinja template for task 'create_tables', field 'sql'. Template: 'sql/create.sql'
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/abstractoperator.py", line 699, in _do_render_template_fields
+    rendered_content = self.render_template(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/template/templater.py", line 171, in render_template
+    template = jinja_env.get_template(value)
+  File "/home/airflow/.local/lib/python3.8/site-packages/jinja2/environment.py", line 1010, in get_template
+    return self._load_template(name, globals)
+  File "/home/airflow/.local/lib/python3.8/site-packages/jinja2/environment.py", line 969, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "/home/airflow/.local/lib/python3.8/site-packages/jinja2/loaders.py", line 125, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "/home/airflow/.local/lib/python3.8/site-packages/jinja2/loaders.py", line 204, in get_source
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: sql/create.sql
+[2024-03-12T17:57:51.341+0000] {local_task_job_runner.py:234} INFO - Task exited with return code -9
+[2024-03-12T17:57:55.787+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

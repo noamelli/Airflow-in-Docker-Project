@@ -1,0 +1,56 @@
+[2024-03-09T17:31:13.592+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.truncate_mrr_stg scheduled__2024-03-06T06:00:00+00:00 [queued]>
+[2024-03-09T17:31:13.644+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.truncate_mrr_stg scheduled__2024-03-06T06:00:00+00:00 [queued]>
+[2024-03-09T17:31:13.648+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-03-09T17:31:13.712+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): truncate_mrr_stg> on 2024-03-06 06:00:00+00:00
+[2024-03-09T17:31:13.745+0000] {standard_task_runner.py:60} INFO - Started process 3449 to run task
+[2024-03-09T17:31:13.773+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'truncate_mrr_stg', 'scheduled__2024-03-06T06:00:00+00:00', '--job-id', '308', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpdd7_foz7']
+[2024-03-09T17:31:13.790+0000] {standard_task_runner.py:88} INFO - Job 308: Subtask truncate_mrr_stg
+[2024-03-09T17:31:14.097+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.truncate_mrr_stg scheduled__2024-03-06T06:00:00+00:00 [running]> on host 3b9d9f11e4f2
+[2024-03-09T17:31:14.602+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='truncate_mrr_stg' AIRFLOW_CTX_EXECUTION_DATE='2024-03-06T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-06T06:00:00+00:00'
+[2024-03-09T17:31:14.615+0000] {sql.py:276} INFO - Executing: TRUNCATE TABLE MRR_Dim_Customers;
+TRUNCATE TABLE MRR_Dim_Employees;
+TRUNCATE TABLE MRR_Dim_Products;
+TRUNCATE TABLE MRR_Fact_Details;
+TRUNCATE TABLE MRR_Fact_Orders;
+TRUNCATE TABLE STG_Dim_Customers;
+TRUNCATE TABLE STG_Dim_Dates;
+TRUNCATE TABLE STG_Dim_Employees;
+TRUNCATE TABLE STG_Dim_Products;
+TRUNCATE TABLE STG_Dim_Time;
+TRUNCATE TABLE STG_Fact_Product_In_Order;
+TRUNCATE TABLE STG_Fact_Product_In_Order;
+TRUNCATE TABLE STG_Snapshot_Customers_Transactions;
+[2024-03-09T17:31:14.674+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-09T17:31:14.723+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-09T17:31:14.855+0000] {sql.py:457} INFO - Running statement: TRUNCATE TABLE MRR_Dim_Customers;
+TRUNCATE TABLE MRR_Dim_Employees;
+TRUNCATE TABLE MRR_Dim_Products;
+TRUNCATE TABLE MRR_Fact_Details;
+TRUNCATE TABLE MRR_Fact_Orders;
+TRUNCATE TABLE STG_Dim_Customers;
+TRUNCATE TABLE STG_Dim_Dates;
+TRUNCATE TABLE STG_Dim_Employees;
+TRUNCATE TABLE STG_Dim_Products;
+TRUNCATE TABLE STG_Dim_Time;
+TRUNCATE TABLE STG_Fact_Product_In_Order;
+TRUNCATE TABLE STG_Fact_Product_In_Order;
+TRUNCATE TABLE STG_Snapshot_Customers_Transactions;, parameters: None
+[2024-03-09T17:31:14.898+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UndefinedTable: relation "mrr_dim_customers" does not exist
+
+[2024-03-09T17:31:14.962+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=truncate_mrr_stg, execution_date=20240306T060000, start_date=20240309T173113, end_date=20240309T173114
+[2024-03-09T17:31:15.040+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 308 for task truncate_mrr_stg (relation "mrr_dim_customers" does not exist
+; 3449)
+[2024-03-09T17:31:15.117+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-09T17:31:18.193+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

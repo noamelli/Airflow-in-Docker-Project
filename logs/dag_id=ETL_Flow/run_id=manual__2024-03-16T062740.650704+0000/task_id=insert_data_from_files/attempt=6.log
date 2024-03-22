@@ -1,0 +1,34 @@
+[2024-03-16T10:51:32.159+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.insert_data_from_files manual__2024-03-16T06:27:40.650704+00:00 [queued]>
+[2024-03-16T10:51:32.170+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.insert_data_from_files manual__2024-03-16T06:27:40.650704+00:00 [queued]>
+[2024-03-16T10:51:32.171+0000] {taskinstance.py:2193} INFO - Starting attempt 6 of 11
+[2024-03-16T10:51:32.187+0000] {taskinstance.py:2214} INFO - Executing <Task(PythonOperator): insert_data_from_files> on 2024-03-16 06:27:40.650704+00:00
+[2024-03-16T10:51:32.194+0000] {standard_task_runner.py:60} INFO - Started process 2053 to run task
+[2024-03-16T10:51:32.198+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'insert_data_from_files', 'manual__2024-03-16T06:27:40.650704+00:00', '--job-id', '1760', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpnykyqfj6']
+[2024-03-16T10:51:32.201+0000] {standard_task_runner.py:88} INFO - Job 1760: Subtask insert_data_from_files
+[2024-03-16T10:51:32.256+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.insert_data_from_files manual__2024-03-16T06:27:40.650704+00:00 [running]> on host 3f630fdac388
+[2024-03-16T10:51:32.591+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='insert_data_from_files' AIRFLOW_CTX_EXECUTION_DATE='2024-03-16T06:27:40.650704+00:00' AIRFLOW_CTX_TRY_NUMBER='6' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-16T06:27:40.650704+00:00'
+[2024-03-16T10:51:32.594+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 200, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 217, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/etl2.py", line 76, in read_csv_and_insert
+    df = pd.read_excel(r"C:\Users\Gstat\OneDrive\Desktop\example.xlsx")
+  File "/home/airflow/.local/lib/python3.8/site-packages/pandas/io/excel/_base.py", line 478, in read_excel
+    io = ExcelFile(io, storage_options=storage_options, engine=engine)
+  File "/home/airflow/.local/lib/python3.8/site-packages/pandas/io/excel/_base.py", line 1496, in __init__
+    ext = inspect_excel_format(
+  File "/home/airflow/.local/lib/python3.8/site-packages/pandas/io/excel/_base.py", line 1371, in inspect_excel_format
+    with get_handle(
+  File "/home/airflow/.local/lib/python3.8/site-packages/pandas/io/common.py", line 868, in get_handle
+    handle = open(handle, ioargs.mode)
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\Gstat\\OneDrive\\Desktop\\example.xlsx'
+[2024-03-16T10:51:32.612+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=insert_data_from_files, execution_date=20240316T062740, start_date=20240316T105132, end_date=20240316T105132
+[2024-03-16T10:51:32.632+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 1760 for task insert_data_from_files ([Errno 2] No such file or directory: 'C:\\Users\\Gstat\\OneDrive\\Desktop\\example.xlsx'; 2053)
+[2024-03-16T10:51:32.692+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-16T10:51:32.743+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

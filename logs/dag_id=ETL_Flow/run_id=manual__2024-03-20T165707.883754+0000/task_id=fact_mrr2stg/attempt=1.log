@@ -1,0 +1,93 @@
+[2024-03-21T19:05:42.061+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.fact_mrr2stg manual__2024-03-20T16:57:07.883754+00:00 [queued]>
+[2024-03-21T19:05:42.085+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.fact_mrr2stg manual__2024-03-20T16:57:07.883754+00:00 [queued]>
+[2024-03-21T19:05:42.086+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-03-21T19:05:42.118+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): fact_mrr2stg> on 2024-03-20 16:57:07.883754+00:00
+[2024-03-21T19:05:42.128+0000] {standard_task_runner.py:60} INFO - Started process 579 to run task
+[2024-03-21T19:05:42.136+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'fact_mrr2stg', 'manual__2024-03-20T16:57:07.883754+00:00', '--job-id', '2143', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpv0_0a159']
+[2024-03-21T19:05:42.152+0000] {standard_task_runner.py:88} INFO - Job 2143: Subtask fact_mrr2stg
+[2024-03-21T19:05:42.260+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.fact_mrr2stg manual__2024-03-20T16:57:07.883754+00:00 [running]> on host 87d0282d7958
+[2024-03-21T19:05:43.220+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='fact_mrr2stg' AIRFLOW_CTX_EXECUTION_DATE='2024-03-20T16:57:07.883754+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-20T16:57:07.883754+00:00'
+[2024-03-21T19:05:43.228+0000] {sql.py:276} INFO - Executing: 
+insert into STG_Fact_Orders (Order_ID,Order_Time,Customer_ID,Employee_ID,Shipper_ID)
+select 
+cast(Order_ID as integer),
+case
+    -- YYYY-MM-DD HH24:MI:SS
+    when Order_Time ~ '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'YYYY-MM-DD HH24:MI:SS')
+    -- DD-MM-YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'DD-MM-YYYY HH24:MI:SS')
+    -- MM-DD-YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'MM-DD-YYYY HH24:MI:SS')
+    -- YYYY/MM/DD HH24:MI:SS
+    when Order_Time ~ '^\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'YYYY/MM/DD HH24:MI:SS')
+    -- DD/MM/YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'DD/MM/YYYY HH24:MI:SS')
+    -- MM/DD/YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'MM/DD/YYYY HH24:MI:SS')
+    -- YYYY.MM.DD HH24:MI:SS
+    when Order_Time ~ '^\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'YYYY.MM.DD HH24:MI:SS')
+    -- DD.MM.YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'DD.MM.YYYY HH24:MI:SS')
+    -- MM.DD.YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'MM.DD.YYYY HH24:MI:SS')
+    else '1900-01-01 00:00:00' end,
+case when Customer_ID similar to '[0-9]+' then cast(Customer_ID as int) else 0 end,
+case when Employee_ID similar to '[0-9]+' then cast(Employee_ID as int) else 0 end,
+case when Shipper_ID similar to '[0-9]+' then cast(Shipper_ID as int) else 0 end
+from MRR_Fact_Orders;
+
+
+insert into STG_Fact_Details (Order_ID,Product_ID,Quantity)
+select 
+cast(Order_ID as integer),
+cast(Product_ID as integer),
+case when Quantity similar to '[0-9]+' and cast(Quantity as int) >0 then cast(Quantity as int) else null end
+from MRR_Fact_Details;
+[2024-03-21T19:05:43.274+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-21T19:05:43.314+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-21T19:05:43.374+0000] {sql.py:457} INFO - Running statement: 
+insert into STG_Fact_Orders (Order_ID,Order_Time,Customer_ID,Employee_ID,Shipper_ID)
+select 
+cast(Order_ID as integer),
+case
+    -- YYYY-MM-DD HH24:MI:SS
+    when Order_Time ~ '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'YYYY-MM-DD HH24:MI:SS')
+    -- DD-MM-YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'DD-MM-YYYY HH24:MI:SS')
+    -- MM-DD-YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'MM-DD-YYYY HH24:MI:SS')
+    -- YYYY/MM/DD HH24:MI:SS
+    when Order_Time ~ '^\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'YYYY/MM/DD HH24:MI:SS')
+    -- DD/MM/YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'DD/MM/YYYY HH24:MI:SS')
+    -- MM/DD/YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'MM/DD/YYYY HH24:MI:SS')
+    -- YYYY.MM.DD HH24:MI:SS
+    when Order_Time ~ '^\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'YYYY.MM.DD HH24:MI:SS')
+    -- DD.MM.YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'DD.MM.YYYY HH24:MI:SS')
+    -- MM.DD.YYYY HH24:MI:SS
+    when Order_Time ~ '^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}$' then to_timestamp(Order_Time, 'MM.DD.YYYY HH24:MI:SS')
+    else '1900-01-01 00:00:00' end,
+case when Customer_ID similar to '[0-9]+' then cast(Customer_ID as int) else 0 end,
+case when Employee_ID similar to '[0-9]+' then cast(Employee_ID as int) else 0 end,
+case when Shipper_ID similar to '[0-9]+' then cast(Shipper_ID as int) else 0 end
+from MRR_Fact_Orders;
+
+
+insert into STG_Fact_Details (Order_ID,Product_ID,Quantity)
+select 
+cast(Order_ID as integer),
+cast(Product_ID as integer),
+case when Quantity similar to '[0-9]+' and cast(Quantity as int) >0 then cast(Quantity as int) else null end
+from MRR_Fact_Details;, parameters: None
+[2024-03-21T19:05:43.494+0000] {sql.py:466} INFO - Rows affected: 4344
+[2024-03-21T19:05:43.497+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/providers/common/sql/hooks/sql.py:407: AirflowProviderDeprecationWarning: Call to deprecated method _make_common_data_structure. (The `_make_serializable` method is deprecated and support will be removed in a future version of the common.sql provider. Please update the DbApiHook's provider to a version based on common.sql >= 1.9.1.)
+  result = self._make_common_data_structure(handler(cur))
+
+[2024-03-21T19:05:43.558+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=fact_mrr2stg, execution_date=20240320T165707, start_date=20240321T190542, end_date=20240321T190543
+[2024-03-21T19:05:43.711+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-03-21T19:05:43.756+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-03-21T19:05:43.850+0000] {taskinstance.py:3309} INFO - 1 downstream tasks scheduled from follow-on schedule check

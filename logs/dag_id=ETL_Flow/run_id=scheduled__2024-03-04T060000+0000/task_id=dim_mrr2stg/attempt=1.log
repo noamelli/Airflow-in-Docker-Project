@@ -1,0 +1,164 @@
+[2024-03-09T17:30:59.157+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-03-04T06:00:00+00:00 [queued]>
+[2024-03-09T17:30:59.223+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-03-04T06:00:00+00:00 [queued]>
+[2024-03-09T17:30:59.225+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-03-09T17:30:59.309+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dim_mrr2stg> on 2024-03-04 06:00:00+00:00
+[2024-03-09T17:30:59.322+0000] {standard_task_runner.py:60} INFO - Started process 3421 to run task
+[2024-03-09T17:30:59.349+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dim_mrr2stg', 'scheduled__2024-03-04T06:00:00+00:00', '--job-id', '293', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpczhlysfv']
+[2024-03-09T17:30:59.361+0000] {standard_task_runner.py:88} INFO - Job 293: Subtask dim_mrr2stg
+[2024-03-09T17:30:59.290+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-03-04T06:00:00+00:00 [running]> on host 3b9d9f11e4f2
+[2024-03-09T17:30:59.859+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dim_mrr2stg' AIRFLOW_CTX_EXECUTION_DATE='2024-03-04T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-04T06:00:00+00:00'
+[2024-03-09T17:30:59.869+0000] {sql.py:276} INFO - Executing: insert into STG_Dim_Products(Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select 
+case when Product_ID similar to '[0-9]+' and cast(Product_ID as int)>=0
+then cast(Product_ID as int) else 0 end,
+Product_Name,
+case when Supplier similar to '[0-9]+' and cast(Supplier as int)>=0
+then cast(Supplier as int) else 0 end,
+case when Category similar to '[0-9]+' and cast(Category as int)>=0
+then cast(Category as int) else 0 end,
+case when Unit_Price is null then 0 else cast(Unit_Price as money) end,
+case when Unit_Cost is null then 0 else cast(Unit_Cost as money) end
+from MRR_Dim_Products;
+
+
+
+
+
+insert into STG_Dim_Customers(Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
+select
+case when Customer_ID similar to '[0-9]+' and cast(Customer_ID as int)>=0 then cast(Customer_ID as int) else 0 end,
+Company_Name,
+Contact_Name,
+Street,
+City,
+Postal_Code,
+Country,
+Phone,
+Fax
+from MRR_Dim_Customers;
+
+
+insert into STG_Dim_Employees(Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)
+select 
+case when Employee_ID similar to '[0-9]+' and cast(Employee_ID as int)>=0 then cast(Employee_ID as int) else 0 end,
+Last_Name,
+First_Name,
+Title,
+Hire_Date,
+case when Office similar to '[0-9]+' and cast(Office as int)>=0 then cast(Office as int) else 0 end,
+case when Reports_To similar to '[0-9]+' and cast(Reports_To as int)>=0 then cast(Reports_To as int) else 0 end,
+case when Month_Salary is null then 0 else cast(Month_Salary as money) end
+from MRR_Dim_Employees;
+
+
+
+
+
+insert into STG_Dim_Dates(Date,Year,Quarter,Month,Day)
+select
+d::date,
+extract(year from d),
+extract(quarter from d),
+extract(month from d),
+extract(day from d)
+from generate_series('2021-01-01'::date, CURRENT_DATE::date, '1 day');
+
+insert into STG_Dim_Time(DateTime,Date,Hour)
+select
+datetime,
+date(DateTime),
+extract(hour from DateTime) 
+from generate_series('2021-01-01'::date, CURRENT_DATE::date, '1 day');
+
+
+ 
+[2024-03-09T17:30:59.964+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-09T17:31:00.478+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-09T17:31:00.708+0000] {sql.py:457} INFO - Running statement: insert into STG_Dim_Products(Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select 
+case when Product_ID similar to '[0-9]+' and cast(Product_ID as int)>=0
+then cast(Product_ID as int) else 0 end,
+Product_Name,
+case when Supplier similar to '[0-9]+' and cast(Supplier as int)>=0
+then cast(Supplier as int) else 0 end,
+case when Category similar to '[0-9]+' and cast(Category as int)>=0
+then cast(Category as int) else 0 end,
+case when Unit_Price is null then 0 else cast(Unit_Price as money) end,
+case when Unit_Cost is null then 0 else cast(Unit_Cost as money) end
+from MRR_Dim_Products;
+
+
+
+
+
+insert into STG_Dim_Customers(Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
+select
+case when Customer_ID similar to '[0-9]+' and cast(Customer_ID as int)>=0 then cast(Customer_ID as int) else 0 end,
+Company_Name,
+Contact_Name,
+Street,
+City,
+Postal_Code,
+Country,
+Phone,
+Fax
+from MRR_Dim_Customers;
+
+
+insert into STG_Dim_Employees(Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)
+select 
+case when Employee_ID similar to '[0-9]+' and cast(Employee_ID as int)>=0 then cast(Employee_ID as int) else 0 end,
+Last_Name,
+First_Name,
+Title,
+Hire_Date,
+case when Office similar to '[0-9]+' and cast(Office as int)>=0 then cast(Office as int) else 0 end,
+case when Reports_To similar to '[0-9]+' and cast(Reports_To as int)>=0 then cast(Reports_To as int) else 0 end,
+case when Month_Salary is null then 0 else cast(Month_Salary as money) end
+from MRR_Dim_Employees;
+
+
+
+
+
+insert into STG_Dim_Dates(Date,Year,Quarter,Month,Day)
+select
+d::date,
+extract(year from d),
+extract(quarter from d),
+extract(month from d),
+extract(day from d)
+from generate_series('2021-01-01'::date, CURRENT_DATE::date, '1 day');
+
+insert into STG_Dim_Time(DateTime,Date,Hour)
+select
+datetime,
+date(DateTime),
+extract(hour from DateTime) 
+from generate_series('2021-01-01'::date, CURRENT_DATE::date, '1 day');
+
+
+ , parameters: None
+[2024-03-09T17:31:00.838+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UndefinedTable: relation "stg_dim_products" does not exist
+LINE 1: insert into STG_Dim_Products(Product_ID,Product_Name,Supplie...
+                    ^
+
+[2024-03-09T17:31:00.928+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=dim_mrr2stg, execution_date=20240304T060000, start_date=20240309T173059, end_date=20240309T173100
+[2024-03-09T17:31:01.028+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 293 for task dim_mrr2stg (relation "stg_dim_products" does not exist
+LINE 1: insert into STG_Dim_Products(Product_ID,Product_Name,Supplie...
+                    ^
+; 3421)
+[2024-03-09T17:31:01.122+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-09T17:31:01.283+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

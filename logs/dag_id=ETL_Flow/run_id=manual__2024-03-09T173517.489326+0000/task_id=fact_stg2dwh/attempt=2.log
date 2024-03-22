@@ -1,0 +1,40 @@
+[2024-03-12T17:34:45.576+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.fact_stg2dwh manual__2024-03-09T17:35:17.489326+00:00 [queued]>
+[2024-03-12T17:34:45.616+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.fact_stg2dwh manual__2024-03-09T17:35:17.489326+00:00 [queued]>
+[2024-03-12T17:34:45.618+0000] {taskinstance.py:2193} INFO - Starting attempt 2 of 6
+[2024-03-12T17:34:45.667+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): fact_stg2dwh> on 2024-03-09 17:35:17.489326+00:00
+[2024-03-12T17:34:45.679+0000] {standard_task_runner.py:60} INFO - Started process 391 to run task
+[2024-03-12T17:34:45.698+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'fact_stg2dwh', 'manual__2024-03-09T17:35:17.489326+00:00', '--job-id', '505', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpp352xu24']
+[2024-03-12T17:34:45.703+0000] {standard_task_runner.py:88} INFO - Job 505: Subtask fact_stg2dwh
+[2024-03-12T17:34:45.891+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.fact_stg2dwh manual__2024-03-09T17:35:17.489326+00:00 [running]> on host e2878ba2ad26
+[2024-03-12T17:34:46.325+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='fact_stg2dwh' AIRFLOW_CTX_EXECUTION_DATE='2024-03-09T17:35:17.489326+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-09T17:35:17.489326+00:00'
+[2024-03-12T17:34:46.328+0000] {sql.py:276} INFO - Executing: insert into DWH_Fact_Product_In_Order
+select * from
+STG_Fact_Product_In_Order;
+[2024-03-12T17:34:46.397+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-12T17:34:46.468+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-12T17:34:46.536+0000] {sql.py:457} INFO - Running statement: insert into DWH_Fact_Product_In_Order
+select * from
+STG_Fact_Product_In_Order;, parameters: None
+[2024-03-12T17:34:46.558+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UndefinedTable: relation "dwh_fact_product_in_order" does not exist
+LINE 1: insert into DWH_Fact_Product_In_Order
+                    ^
+
+[2024-03-12T17:34:46.624+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=fact_stg2dwh, execution_date=20240309T173517, start_date=20240312T173445, end_date=20240312T173446
+[2024-03-12T17:34:46.678+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 505 for task fact_stg2dwh (relation "dwh_fact_product_in_order" does not exist
+LINE 1: insert into DWH_Fact_Product_In_Order
+                    ^
+; 391)
+[2024-03-12T17:34:46.728+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-12T17:34:47.075+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

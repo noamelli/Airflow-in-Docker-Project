@@ -1,0 +1,12 @@
+[2024-03-12T17:58:01.974+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.fact_stg2dwh scheduled__2024-03-07T06:00:00+00:00 [queued]>
+[2024-03-12T17:58:02.323+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.fact_stg2dwh scheduled__2024-03-07T06:00:00+00:00 [queued]>
+[2024-03-12T17:58:02.333+0000] {taskinstance.py:2193} INFO - Starting attempt 6 of 6
+[2024-03-12T17:58:03.470+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): fact_stg2dwh> on 2024-03-07 06:00:00+00:00
+[2024-03-12T17:58:03.517+0000] {standard_task_runner.py:60} INFO - Started process 1658 to run task
+[2024-03-12T17:58:03.559+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'fact_stg2dwh', 'scheduled__2024-03-07T06:00:00+00:00', '--job-id', '878', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpyz5isg6o']
+[2024-03-12T17:58:03.579+0000] {standard_task_runner.py:88} INFO - Job 878: Subtask fact_stg2dwh
+[2024-03-12T17:58:15.485+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 878 for task fact_stg2dwh ((psycopg2.OperationalError) could not translate host name "postgres" to address: Temporary failure in name resolution
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8); 1658)
+[2024-03-12T17:58:15.801+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-12T17:58:16.086+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

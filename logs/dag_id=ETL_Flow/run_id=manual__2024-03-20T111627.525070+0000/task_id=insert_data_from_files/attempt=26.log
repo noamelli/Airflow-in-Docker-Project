@@ -1,0 +1,119 @@
+[2024-03-20T13:33:42.761+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.insert_data_from_files manual__2024-03-20T11:16:27.525070+00:00 [queued]>
+[2024-03-20T13:33:42.775+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.insert_data_from_files manual__2024-03-20T11:16:27.525070+00:00 [queued]>
+[2024-03-20T13:33:42.777+0000] {taskinstance.py:2193} INFO - Starting attempt 26 of 31
+[2024-03-20T13:33:42.803+0000] {taskinstance.py:2214} INFO - Executing <Task(PythonOperator): insert_data_from_files> on 2024-03-20 11:16:27.525070+00:00
+[2024-03-20T13:33:42.820+0000] {standard_task_runner.py:60} INFO - Started process 2041 to run task
+[2024-03-20T13:33:42.832+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'insert_data_from_files', 'manual__2024-03-20T11:16:27.525070+00:00', '--job-id', '2022', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmp1et1l1uo']
+[2024-03-20T13:33:42.840+0000] {standard_task_runner.py:88} INFO - Job 2022: Subtask insert_data_from_files
+[2024-03-20T13:33:42.913+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.insert_data_from_files manual__2024-03-20T11:16:27.525070+00:00 [running]> on host a1a2ab3031a9
+[2024-03-20T13:33:43.760+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='insert_data_from_files' AIRFLOW_CTX_EXECUTION_DATE='2024-03-20T11:16:27.525070+00:00' AIRFLOW_CTX_TRY_NUMBER='26' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-20T11:16:27.525070+00:00'
+[2024-03-20T13:33:44.520+0000] {logging_mixin.py:188} INFO -     EmployeeID  Last Name      First Name  ... Office Reports To  Month Salary
+0            2    Presley           Elvis  ...      1        NaN         30000
+1            4    Callins            Joan  ...      3        2.0         12000
+2            1       Roll            Rock  ...      5        4.0         12000
+3            3    Carsson             Rob  ...      1        4.0         12000
+4            5    Hendrix          Ingrid  ...      3        4.0         12000
+5            6   Skoglund         Lennart  ...      4        4.0         12000
+6            7   Lindwall             Tom  ...      2        4.0         12000
+7            8      Shine            Leif  ...      2        2.0         12000
+8            9     Brolin           Helen  ...      1        4.0         12000
+9           19  Letterman           David  ...      2        8.0         12493
+10          20    Cleaves            John  ...      3        8.0         12613
+11          21     Takako            Miro  ...      4        8.0         12056
+12          22  Protzmann            Binh  ...      5        8.0         13318
+13          23      Sandu           Cezar  ...      2       19.0         12716
+14          24   Crawford           Cindy  ...      2       19.0         12508
+15          25       Bond           James  ...      2       19.0         16598
+16          26        Doe            John  ...      2       19.0         16596
+17          27    Kaddafi           Mario  ...      5       22.0         15077
+18          28     Dupont            Paul  ...      5       22.0         16408
+19          29   Svensson            Sven  ...      5       22.0         15595
+20          30     Baumel             Ira  ...      5       22.0         14386
+21          31    Helmkey           Keith  ...      5       22.0         15530
+22          32  Wesenlund            Rolf  ...      3       20.0         14581
+23          33  Lindquist             Ann  ...      3       20.0         15979
+24          34       Yang            Bill  ...      3       20.0         12844
+25          35    Jönsson  Charles Ingvar  ...      3       20.0         16156
+26          36   Clouseau         Jacques  ...      3       20.0         15710
+27          37     Tessel           Jerry  ...      4       21.0         14250
+28          38      Lemon            John  ...      4       21.0         15693
+29          39  Salvatori          Marcus  ...      4       21.0         15066
+30          40    Simenon         Olivier  ...      4       21.0         12631
+31          41      Gupta           Sunil  ...      4       21.0         15401
+32          42      Arlig           Osten  ...      1        3.0         16559
+33          43       Park             Bob  ...      2        7.0         12082
+34          44       Kent           Clark  ...      2        7.0         13275
+35          45      Cheng             Joe  ...      3        5.0         16814
+36          46      Alpan            Kaya  ...      3        5.0         15553
+37          47      Tyson        Michelle  ...      4        6.0         13136
+38          48      Gucci         Ricardo  ...      4        6.0         12831
+39          49    Cioazzi           Steve  ...      1        2.0         14143
+40          50     Finley         Kenneth  ...      2        8.0         15762
+41          51       Luke           Lucky  ...      3        4.0         16137
+42          52   Ashkenaz            Mike  ...      1       42.0         12636
+43          53    Ranieri         Richard  ...      2       23.0         14238
+44          54   Richards         Sabrina  ...      3       32.0         14229
+45          55        Daw          Sehoon  ...      4       37.0         15563
+46         161       Lind          Stefan  ...      5       27.0         14328
+
+[47 rows x 8 columns]
+[2024-03-20T13:33:44.551+0000] {logging_mixin.py:188} INFO -     CustomerID             Company Name  ...          Phone            Fax
+0            1              Eintrach GS  ...      300074321      300076545
+1            2  La Tienda de la Esquina  ...    (5) 5554729    (5) 5553745
+2            3            La Ropa Vieja  ...    (5) 5553932            NaN
+3            4         Dr Jims Trousers  ...  (171) 5557788  (171) 5556750
+4            5               Urras Shop  ...   092112 34 65   092112 34 67
+..         ...                      ...  ...            ...            ...
+87          89           Nirvana Stores  ...  (206) 5554112  (206) 5554115
+88          90   Leningrad Cowboys Shop  ...     90224 8858     90224 8858
+89          91              Slotzy Danz  ...   (26) 6427012   (26) 6427012
+90          94           Modehuset Abel  ...    86 21 32 43    86 22 33 44
+91         127               Stephanies  ...   (8) 10 20 30   (8) 11 22 33
+
+[92 rows x 9 columns]
+[2024-03-20T13:33:44.571+0000] {logging_mixin.py:188} INFO -     Product ID         Product Name  Supplier  Category  Unit Price  Unit Cost
+0            1    Lenin Jeansshorts         1         1       20.00      14.00
+1            2        Mr X Trousers         1         1       19.00      13.30
+2            3       Chantell Shirt         1         2       20.00      14.00
+3            4         Oyaki Kimono         2         2       22.00      15.40
+4            5      O-Man Underwear         2         1        6.00       4.20
+..         ...                  ...       ...       ...         ...        ...
+72          73          Mehmet-Napp        17         8        1.10       0.66
+73          74  Nikee Running Shoes         4         7       30.00      12.00
+74          75              Bow tie        12         1        7.75       3.10
+75          76        Minnki Pälsii        23         2      399.00     159.60
+76          77                Skirt        12         2       13.00       5.20
+
+[77 rows x 6 columns]
+[2024-03-20T13:33:44.586+0000] {logging_mixin.py:188} INFO -       Order ID  ProductID  Quantity
+0        10248         11        12
+1        10248         42        10
+2        10248         72         5
+3        10249         14         9
+4        10249         51        40
+...        ...        ...       ...
+2167     11083         37         7
+2168     11083         42        10
+2169     11083         47         5
+2170     11083         51         3
+2171     11083         62         5
+
+[2172 rows x 3 columns]
+[2024-03-20T13:33:44.609+0000] {logging_mixin.py:188} INFO -      Order ID           OrderTime  CustomerID  EmployeeID  ShipperID
+0       10410 2005-09-07 11:27:00          10           1          6
+1       10411 2008-08-07 12:27:00          10           1          7
+2       10949 2008-08-10 13:27:00          10           1          6
+3       11027 2007-12-13 14:27:00          10           1          2
+4       11045 2007-12-20 15:27:00          10           1          7
+..        ...                 ...         ...         ...        ...
+831     10839 2008-01-16 02:16:00          81           9          9
+832     10504 2006-02-08 00:06:00          89           9          2
+833     11032 2008-01-15 08:06:00          89           9          4
+834     11066 2007-12-30 09:06:00          89           9          6
+835     10910 2008-04-25 10:06:00          90           9          9
+
+[836 rows x 5 columns]
+[2024-03-20T13:33:44.611+0000] {python.py:202} INFO - Done. Returned value was: None
+[2024-03-20T13:33:44.625+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=insert_data_from_files, execution_date=20240320T111627, start_date=20240320T133342, end_date=20240320T133344
+[2024-03-20T13:33:44.696+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-03-20T13:33:44.718+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

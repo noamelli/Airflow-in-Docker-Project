@@ -1,0 +1,722 @@
+[2024-03-15T20:23:01.478+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.create_tables manual__2024-03-15T20:11:37.760277+00:00 [queued]>
+[2024-03-15T20:23:01.506+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.create_tables manual__2024-03-15T20:11:37.760277+00:00 [queued]>
+[2024-03-15T20:23:01.508+0000] {taskinstance.py:2193} INFO - Starting attempt 3 of 8
+[2024-03-15T20:23:01.563+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): create_tables> on 2024-03-15 20:11:37.760277+00:00
+[2024-03-15T20:23:01.575+0000] {standard_task_runner.py:60} INFO - Started process 3291 to run task
+[2024-03-15T20:23:01.584+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'create_tables', 'manual__2024-03-15T20:11:37.760277+00:00', '--job-id', '1622', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpzg0l9gx3']
+[2024-03-15T20:23:01.591+0000] {standard_task_runner.py:88} INFO - Job 1622: Subtask create_tables
+[2024-03-15T20:23:01.742+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.create_tables manual__2024-03-15T20:11:37.760277+00:00 [running]> on host 3262c7a95ffd
+[2024-03-15T20:23:02.620+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='create_tables' AIRFLOW_CTX_EXECUTION_DATE='2024-03-15T20:11:37.760277+00:00' AIRFLOW_CTX_TRY_NUMBER='3' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-15T20:11:37.760277+00:00'
+[2024-03-15T20:23:02.628+0000] {sql.py:276} INFO - Executing: DROP TABLE IF EXISTS MRR_Dim_Customers;
+DROP TABLE IF EXISTS MRR_Dim_Employees;
+DROP TABLE IF EXISTS MRR_Dim_Products;
+DROP TABLE IF EXISTS MRR_Fact_Details;
+DROP TABLE IF EXISTS MRR_Fact_Orders;
+DROP TABLE IF EXISTS STG_Dim_Customers;
+DROP TABLE IF EXISTS STG_Dim_Dates;
+DROP TABLE IF EXISTS STG_Dim_Employees;
+DROP TABLE IF EXISTS STG_Dim_Products;
+DROP TABLE IF EXISTS STG_Dim_Time;
+DROP TABLE IF EXISTS STG_Fact_Product_In_Order;
+DROP TABLE IF EXISTS DWH_Dim_Customers;
+DROP TABLE IF EXISTS DWH_Dim_Dates;
+DROP TABLE IF EXISTS DWH_Dim_Employees;
+DROP TABLE IF EXISTS DWH_Dim_Products;
+DROP TABLE IF EXISTS DWH_Fact_Product_In_Order;
+DROP TABLE IF EXISTS DWH_Dim_Time;
+DROP TABLE IF EXISTS Snapshot_Customers_Transactions_Arch;
+DROP TABLE IF EXISTS DWH_Snapshot_Customers_Transactions;
+DROP TABLE IF EXISTS DWH_Dim_Customers_backup;
+DROP TABLE IF EXISTS DWH_Dim_Dates_backup;
+DROP TABLE IF EXISTS DWH_Dim_Employees_backup;
+DROP TABLE IF EXISTS DWH_Dim_Products_backup;
+DROP TABLE IF EXISTS DWH_Fact_Product_In_Order_backup;
+DROP TABLE IF EXISTS DWH_Dim_Time_backup;
+DROP TABLE IF EXISTS DWH_Snapshot_Customers_Transactions_backup;
+
+
+CREATE TABLE IF NOT EXISTS MRR_Dim_Customers(
+    Customer_ID varchar(50) null,
+    Company_Name varchar(50) null,
+    Contact_Name varchar(50) null,
+    Street varchar(50) null,
+    City varchar(50) null,
+    Postal_Code varchar(50) null,
+    Country varchar(50) null,
+    Phone varchar(50) null,
+    Fax varchar(50) null
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS MRR_Dim_Employees(
+    Employee_ID varchar(50) null,
+    Last_Name varchar(50) null,
+    First_Name varchar(50) null,
+    Title varchar(50) null,
+    Hire_Date varchar(50) null,
+    Office varchar(50) null,
+    Reports_To varchar(50) null,
+    Month_Salary varchar(50) null
+);
+
+
+CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
+    Product_ID varchar(50) null,
+    Product_Name varchar(50) null,
+    Supplier varchar(50) null,
+    Category varchar(50) null,
+    Unit_Price varchar(50) null,
+    Unit_Cost varchar(50) null
+);
+
+
+CREATE TABLE IF NOT EXISTS  MRR_Fact_Details(
+    Order_ID varchar(50) null,
+    Product_ID varchar(50) null,
+    Quantity varchar(50) null
+);
+CREATE TABLE IF NOT EXISTS  MRR_Fact_Orders(
+    Order_ID varchar(50) null,
+    Order_Time varchar(50) null,
+    Customer_ID varchar(50) null,
+    Employee_ID varchar(50) null,
+    Shipper_ID varchar(50) null
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
+    Customer_ID int not null,
+    Company_Name varchar(50) not null,
+    Contact_Name varchar(50) not null,
+    Street varchar(50) not null,
+    City varchar(50) not null,
+    Postal_Code varchar(50) not null,
+    Country varchar(50) not null,
+    Phone varchar(50) not null,
+    Fax varchar(50) not null,
+    PRIMARY KEY (Customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Dates(
+    Date date not null,
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Day int not null,
+    PRIMARY KEY (Date)
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Employees(
+    Employee_ID int not null,
+    Last_Name varchar(50) not null,
+    First_Name varchar(50) not null,
+    Title varchar(50) not null,
+    Hire_Date date not null,
+    Office int not null,
+    Reports_To int null,
+    Month_Salary decimal(15,5) not null,
+    PRIMARY KEY (Employee_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS STG_Dim_Products(
+    Product_ID int not null,
+    Product_Name varchar(50) not null,
+    Supplier int not null,
+    Category int not null,
+    Unit_Price decimal(15,5) not null,
+    Unit_Cost decimal(15,5) not null,
+    PRIMARY KEY (Product_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS STG_Dim_Time(
+    DateTime  timestamp  not null,
+    Date date not null,
+    Hour time (7) not null,
+    PRIMARY KEY (DateTime )
+);
+
+
+CREATE TABLE IF NOT EXISTS STG_Fact_Product_In_Order(
+    Order_ID int not null,
+    Prdocut_ID int not null,
+    Employee_ID int not null,
+    Customer_ID int not null,
+    Order_Time timestamp  not null,
+    Quantity int not null,
+    Total_Price decimal(15,5) not null,
+    Total_Cost decimal(15,5) not null,
+    Shipper_ID int not null,
+    PRIMARY KEY (Order_ID,Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Customers(
+    DW_Customer_ID serial not null,
+    Customer_ID int not null,
+    Company_Name varchar(50) not null,
+    Contact_Name varchar(50) not null,
+    Street varchar(50) not null,
+    City varchar(50) not null,
+    Postal_Code varchar(50) not null,
+    Country varchar(50) not null,
+    Phone varchar(50) not null,
+    Fax varchar(50) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS  DWH_Dim_Dates(
+    Date date not null,
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Day int not null,
+    PRIMARY KEY (Date)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Employees(
+    DW_Employee_ID serial not null,
+    Employee_ID int not null,
+    Last_Name varchar(50) not null,
+    First_Name varchar(50) not null,
+    Title varchar(50) not null,
+    Hire_Date date not null,
+    Office int not null,
+    Reports_To int null,
+    Month_Salary decimal(15,5) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Employee_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Products(
+    DW_Prdocut_ID serial not null,
+    Product_ID int not null,
+    Product_Name varchar(50) not null,
+    Supplier int not null,
+    Category int not null,
+    Unit_Price decimal(15,5) not null,
+    Unit_Cost decimal(15,5) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order(
+    Order_ID int not null,
+    DW_Prdocut_ID int not null,
+    DW_Customer_ID int not null,
+    DW_Employee_ID int not null,
+    Order_Time timestamp not null,
+    Quantity int not null,
+    Total_Price decimal(15,5) not null,
+    Total_Cost decimal(15,5) not null,
+    Shipper_ID int not null,
+    PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Time(
+    timestamp  timestamp  not null,
+    Date date not null,
+    Hour time(7) not null,
+    PRIMARY KEY (timestamp )
+);
+CREATE TABLE IF NOT EXISTS Snapshot_Customers_Transactions_Arch(
+    DW_Customer_ID int not null,
+    Year int not null,
+    Month int not null,
+    Status varchar(10) not null
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions(
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Country varchar(50) not null,
+    City varchar(50) not null,
+    Count_New_Customers int not null,
+    Count_Regular int not null,
+    Count_Reactivated int not null,
+    Count_Abandons int not null,
+    Count_Total int not null,
+    PRIMARY KEY (Year, Quarter, Month, Country, City)
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Customers_backup(
+    DW_Customer_ID serial not null,
+    Customer_ID int not null,
+    Company_Name varchar(50) not null,
+    Contact_Name varchar(50) not null,
+    Street varchar(50) not null,
+    City varchar(50) not null,
+    Postal_Code varchar(50) not null,
+    Country varchar(50) not null,
+    Phone varchar(50) not null,
+    Fax varchar(50) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS  DWH_Dim_Dates_backup(
+    Date date not null,
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Day int not null,
+    PRIMARY KEY (Date)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Employees_backup(
+    DW_Employee_ID serial not null,
+    Employee_ID int not null,
+    Last_Name varchar(50) not null,
+    First_Name varchar(50) not null,
+    Title varchar(50) not null,
+    Hire_Date date not null,
+    Office int not null,
+    Reports_To int null,
+    Month_Salary decimal(15,5) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Employee_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Products_backup(
+    DW_Prdocut_ID serial not null,
+    Product_ID int not null,
+    Product_Name varchar(50) not null,
+    Supplier int not null,
+    Category int not null,
+    Unit_Price decimal(15,5) not null,
+    Unit_Cost decimal(15,5) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order_backup(
+    Order_ID int not null,
+    DW_Prdocut_ID int not null,
+    DW_Customer_ID int not null,
+    DW_Employee_ID int not null,
+    Order_Time timestamp not null,
+    Quantity int not null,
+    Total_Price decimal(15,5) not null,
+    Total_Cost decimal(15,5) not null,
+    Shipper_ID int not null,
+    PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Time_backup(
+    timestamp  timestamp  not null,
+    Date date not null,
+    Hour time(7) not null,
+    PRIMARY KEY (timestamp )
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions_backup(
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Country varchar(50) not null,
+    City varchar(50) not null,
+    Count_New_Customers int not null,
+    Count_Regular int not null,
+    Count_Reactivated int not null,
+    Count_Abandons int not null,
+    Count_Total int not null,
+    PRIMARY KEY (Year, Quarter, Month, Country, City)
+);
+
+
+
+
+
+
+
+
+[2024-03-15T20:23:02.676+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-15T20:23:02.736+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-15T20:23:03.111+0000] {sql.py:457} INFO - Running statement: DROP TABLE IF EXISTS MRR_Dim_Customers;
+DROP TABLE IF EXISTS MRR_Dim_Employees;
+DROP TABLE IF EXISTS MRR_Dim_Products;
+DROP TABLE IF EXISTS MRR_Fact_Details;
+DROP TABLE IF EXISTS MRR_Fact_Orders;
+DROP TABLE IF EXISTS STG_Dim_Customers;
+DROP TABLE IF EXISTS STG_Dim_Dates;
+DROP TABLE IF EXISTS STG_Dim_Employees;
+DROP TABLE IF EXISTS STG_Dim_Products;
+DROP TABLE IF EXISTS STG_Dim_Time;
+DROP TABLE IF EXISTS STG_Fact_Product_In_Order;
+DROP TABLE IF EXISTS DWH_Dim_Customers;
+DROP TABLE IF EXISTS DWH_Dim_Dates;
+DROP TABLE IF EXISTS DWH_Dim_Employees;
+DROP TABLE IF EXISTS DWH_Dim_Products;
+DROP TABLE IF EXISTS DWH_Fact_Product_In_Order;
+DROP TABLE IF EXISTS DWH_Dim_Time;
+DROP TABLE IF EXISTS Snapshot_Customers_Transactions_Arch;
+DROP TABLE IF EXISTS DWH_Snapshot_Customers_Transactions;
+DROP TABLE IF EXISTS DWH_Dim_Customers_backup;
+DROP TABLE IF EXISTS DWH_Dim_Dates_backup;
+DROP TABLE IF EXISTS DWH_Dim_Employees_backup;
+DROP TABLE IF EXISTS DWH_Dim_Products_backup;
+DROP TABLE IF EXISTS DWH_Fact_Product_In_Order_backup;
+DROP TABLE IF EXISTS DWH_Dim_Time_backup;
+DROP TABLE IF EXISTS DWH_Snapshot_Customers_Transactions_backup;
+
+
+CREATE TABLE IF NOT EXISTS MRR_Dim_Customers(
+    Customer_ID varchar(50) null,
+    Company_Name varchar(50) null,
+    Contact_Name varchar(50) null,
+    Street varchar(50) null,
+    City varchar(50) null,
+    Postal_Code varchar(50) null,
+    Country varchar(50) null,
+    Phone varchar(50) null,
+    Fax varchar(50) null
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS MRR_Dim_Employees(
+    Employee_ID varchar(50) null,
+    Last_Name varchar(50) null,
+    First_Name varchar(50) null,
+    Title varchar(50) null,
+    Hire_Date varchar(50) null,
+    Office varchar(50) null,
+    Reports_To varchar(50) null,
+    Month_Salary varchar(50) null
+);
+
+
+CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
+    Product_ID varchar(50) null,
+    Product_Name varchar(50) null,
+    Supplier varchar(50) null,
+    Category varchar(50) null,
+    Unit_Price varchar(50) null,
+    Unit_Cost varchar(50) null
+);
+
+
+CREATE TABLE IF NOT EXISTS  MRR_Fact_Details(
+    Order_ID varchar(50) null,
+    Product_ID varchar(50) null,
+    Quantity varchar(50) null
+);
+CREATE TABLE IF NOT EXISTS  MRR_Fact_Orders(
+    Order_ID varchar(50) null,
+    Order_Time varchar(50) null,
+    Customer_ID varchar(50) null,
+    Employee_ID varchar(50) null,
+    Shipper_ID varchar(50) null
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
+    Customer_ID int not null,
+    Company_Name varchar(50) not null,
+    Contact_Name varchar(50) not null,
+    Street varchar(50) not null,
+    City varchar(50) not null,
+    Postal_Code varchar(50) not null,
+    Country varchar(50) not null,
+    Phone varchar(50) not null,
+    Fax varchar(50) not null,
+    PRIMARY KEY (Customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Dates(
+    Date date not null,
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Day int not null,
+    PRIMARY KEY (Date)
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Employees(
+    Employee_ID int not null,
+    Last_Name varchar(50) not null,
+    First_Name varchar(50) not null,
+    Title varchar(50) not null,
+    Hire_Date date not null,
+    Office int not null,
+    Reports_To int null,
+    Month_Salary decimal(15,5) not null,
+    PRIMARY KEY (Employee_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS STG_Dim_Products(
+    Product_ID int not null,
+    Product_Name varchar(50) not null,
+    Supplier int not null,
+    Category int not null,
+    Unit_Price decimal(15,5) not null,
+    Unit_Cost decimal(15,5) not null,
+    PRIMARY KEY (Product_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS STG_Dim_Time(
+    DateTime  timestamp  not null,
+    Date date not null,
+    Hour time (7) not null,
+    PRIMARY KEY (DateTime )
+);
+
+
+CREATE TABLE IF NOT EXISTS STG_Fact_Product_In_Order(
+    Order_ID int not null,
+    Prdocut_ID int not null,
+    Employee_ID int not null,
+    Customer_ID int not null,
+    Order_Time timestamp  not null,
+    Quantity int not null,
+    Total_Price decimal(15,5) not null,
+    Total_Cost decimal(15,5) not null,
+    Shipper_ID int not null,
+    PRIMARY KEY (Order_ID,Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Customers(
+    DW_Customer_ID serial not null,
+    Customer_ID int not null,
+    Company_Name varchar(50) not null,
+    Contact_Name varchar(50) not null,
+    Street varchar(50) not null,
+    City varchar(50) not null,
+    Postal_Code varchar(50) not null,
+    Country varchar(50) not null,
+    Phone varchar(50) not null,
+    Fax varchar(50) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS  DWH_Dim_Dates(
+    Date date not null,
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Day int not null,
+    PRIMARY KEY (Date)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Employees(
+    DW_Employee_ID serial not null,
+    Employee_ID int not null,
+    Last_Name varchar(50) not null,
+    First_Name varchar(50) not null,
+    Title varchar(50) not null,
+    Hire_Date date not null,
+    Office int not null,
+    Reports_To int null,
+    Month_Salary decimal(15,5) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Employee_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Products(
+    DW_Prdocut_ID serial not null,
+    Product_ID int not null,
+    Product_Name varchar(50) not null,
+    Supplier int not null,
+    Category int not null,
+    Unit_Price decimal(15,5) not null,
+    Unit_Cost decimal(15,5) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order(
+    Order_ID int not null,
+    DW_Prdocut_ID int not null,
+    DW_Customer_ID int not null,
+    DW_Employee_ID int not null,
+    Order_Time timestamp not null,
+    Quantity int not null,
+    Total_Price decimal(15,5) not null,
+    Total_Cost decimal(15,5) not null,
+    Shipper_ID int not null,
+    PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Time(
+    timestamp  timestamp  not null,
+    Date date not null,
+    Hour time(7) not null,
+    PRIMARY KEY (timestamp )
+);
+CREATE TABLE IF NOT EXISTS Snapshot_Customers_Transactions_Arch(
+    DW_Customer_ID int not null,
+    Year int not null,
+    Month int not null,
+    Status varchar(10) not null
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions(
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Country varchar(50) not null,
+    City varchar(50) not null,
+    Count_New_Customers int not null,
+    Count_Regular int not null,
+    Count_Reactivated int not null,
+    Count_Abandons int not null,
+    Count_Total int not null,
+    PRIMARY KEY (Year, Quarter, Month, Country, City)
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Customers_backup(
+    DW_Customer_ID serial not null,
+    Customer_ID int not null,
+    Company_Name varchar(50) not null,
+    Contact_Name varchar(50) not null,
+    Street varchar(50) not null,
+    City varchar(50) not null,
+    Postal_Code varchar(50) not null,
+    Country varchar(50) not null,
+    Phone varchar(50) not null,
+    Fax varchar(50) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS  DWH_Dim_Dates_backup(
+    Date date not null,
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Day int not null,
+    PRIMARY KEY (Date)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Employees_backup(
+    DW_Employee_ID serial not null,
+    Employee_ID int not null,
+    Last_Name varchar(50) not null,
+    First_Name varchar(50) not null,
+    Title varchar(50) not null,
+    Hire_Date date not null,
+    Office int not null,
+    Reports_To int null,
+    Month_Salary decimal(15,5) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Employee_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Products_backup(
+    DW_Prdocut_ID serial not null,
+    Product_ID int not null,
+    Product_Name varchar(50) not null,
+    Supplier int not null,
+    Category int not null,
+    Unit_Price decimal(15,5) not null,
+    Unit_Cost decimal(15,5) not null,
+    Valid_From date not null default current_date,
+    Valid_Until date null,
+    PRIMARY KEY (DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order_backup(
+    Order_ID int not null,
+    DW_Prdocut_ID int not null,
+    DW_Customer_ID int not null,
+    DW_Employee_ID int not null,
+    Order_Time timestamp not null,
+    Quantity int not null,
+    Total_Price decimal(15,5) not null,
+    Total_Cost decimal(15,5) not null,
+    Shipper_ID int not null,
+    PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Time_backup(
+    timestamp  timestamp  not null,
+    Date date not null,
+    Hour time(7) not null,
+    PRIMARY KEY (timestamp )
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions_backup(
+    Year int not null,
+    Quarter int not null,
+    Month int not null,
+    Country varchar(50) not null,
+    City varchar(50) not null,
+    Count_New_Customers int not null,
+    Count_Regular int not null,
+    Count_Reactivated int not null,
+    Count_Abandons int not null,
+    Count_Total int not null,
+    PRIMARY KEY (Year, Quarter, Month, Country, City)
+);
+
+
+
+
+
+
+
+, parameters: None
+[2024-03-15T20:23:04.067+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/providers/common/sql/hooks/sql.py:407: AirflowProviderDeprecationWarning: Call to deprecated method _make_common_data_structure. (The `_make_serializable` method is deprecated and support will be removed in a future version of the common.sql provider. Please update the DbApiHook's provider to a version based on common.sql >= 1.9.1.)
+  result = self._make_common_data_structure(handler(cur))
+
+[2024-03-15T20:23:04.169+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=create_tables, execution_date=20240315T201137, start_date=20240315T202301, end_date=20240315T202304
+[2024-03-15T20:23:04.269+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-03-15T20:23:04.310+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-03-15T20:23:04.390+0000] {taskinstance.py:3309} INFO - 1 downstream tasks scheduled from follow-on schedule check

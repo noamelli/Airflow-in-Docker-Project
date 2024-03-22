@@ -1,0 +1,12 @@
+[2024-03-12T18:08:21.159+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.raw2mrr manual__2024-03-12T18:08:05.335366+00:00 [queued]>
+[2024-03-12T18:08:21.249+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.raw2mrr manual__2024-03-12T18:08:05.335366+00:00 [queued]>
+[2024-03-12T18:08:21.262+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-03-12T18:08:21.340+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): raw2mrr> on 2024-03-12 18:08:05.335366+00:00
+[2024-03-12T18:08:21.361+0000] {standard_task_runner.py:60} INFO - Started process 218 to run task
+[2024-03-12T18:08:21.380+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'raw2mrr', 'manual__2024-03-12T18:08:05.335366+00:00', '--job-id', '928', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmpdzwv_ahz']
+[2024-03-12T18:08:21.393+0000] {standard_task_runner.py:88} INFO - Job 928: Subtask raw2mrr
+[2024-03-12T18:08:32.928+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 928 for task raw2mrr ((psycopg2.OperationalError) could not translate host name "postgres" to address: Temporary failure in name resolution
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8); 218)
+[2024-03-12T18:08:33.933+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-12T18:08:34.127+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

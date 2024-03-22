@@ -1,0 +1,10 @@
+[2024-03-12T17:48:53.751+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.snapshot scheduled__2024-03-03T06:00:00+00:00 [queued]>
+[2024-03-12T17:48:53.960+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.snapshot scheduled__2024-03-03T06:00:00+00:00 [queued]>
+[2024-03-12T17:48:53.965+0000] {taskinstance.py:2193} INFO - Starting attempt 5 of 6
+[2024-03-12T17:48:54.294+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): snapshot> on 2024-03-03 06:00:00+00:00
+[2024-03-12T17:48:54.399+0000] {standard_task_runner.py:60} INFO - Started process 1249 to run task
+[2024-03-12T17:48:54.470+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'snapshot', 'scheduled__2024-03-03T06:00:00+00:00', '--job-id', '817', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmplb5rs04z']
+[2024-03-12T17:48:54.559+0000] {standard_task_runner.py:88} INFO - Job 817: Subtask snapshot
+[2024-03-12T17:48:55.246+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.snapshot scheduled__2024-03-03T06:00:00+00:00 [running]> on host e2878ba2ad26
+[2024-03-12T17:48:58.609+0000] {local_task_job_runner.py:234} INFO - Task exited with return code -9
+[2024-03-12T17:49:04.340+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

@@ -1,0 +1,88 @@
+[2024-03-12T17:32:13.330+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.raw2mrr scheduled__2024-03-03T06:00:00+00:00 [queued]>
+[2024-03-12T17:32:13.386+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.raw2mrr scheduled__2024-03-03T06:00:00+00:00 [queued]>
+[2024-03-12T17:32:13.388+0000] {taskinstance.py:2193} INFO - Starting attempt 2 of 6
+[2024-03-12T17:32:13.505+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): raw2mrr> on 2024-03-03 06:00:00+00:00
+[2024-03-12T17:32:13.559+0000] {standard_task_runner.py:60} INFO - Started process 145 to run task
+[2024-03-12T17:32:13.617+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'raw2mrr', 'scheduled__2024-03-03T06:00:00+00:00', '--job-id', '393', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmp_jl2btsc']
+[2024-03-12T17:32:13.628+0000] {standard_task_runner.py:88} INFO - Job 393: Subtask raw2mrr
+[2024-03-12T17:32:14.211+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.raw2mrr scheduled__2024-03-03T06:00:00+00:00 [running]> on host e2878ba2ad26
+[2024-03-12T17:32:15.334+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='raw2mrr' AIRFLOW_CTX_EXECUTION_DATE='2024-03-03T06:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-03T06:00:00+00:00'
+[2024-03-12T17:32:15.352+0000] {sql.py:276} INFO - Executing: insert into MRR_Dim_Products(DW_Prdocut_ID,Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,Valid_From,Valid_Until)
+select * from Raw_Products;
+
+
+insert into MRR_Dim_Customers(DW_Customer_ID,Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax,Valid_From,Valid_Until)
+select * from Raw_Customers;
+
+
+insert into MRR_Dim_Employees(DW_Employee_ID,Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary,Valid_From,Valid_Until)
+select * from Raw_Employees;
+
+
+insert into MRR_Fact_Orders(Order_ID,Order_Time,Customer_ID,Employee_ID,Shipper_ID,Freight)
+select * from Raw_Orders
+where Order_ID not in (
+			select distinct Order_ID 
+			from DWH_Fact_Product_In_Order);
+
+
+
+insert into MRR_Fact_Details(Order_ID,Product_ID,Quantity)
+select * from Raw_OrderDetails
+where Order_ID not in (
+			select distinct Order_ID 
+			from DWH_Fact_Product_In_Order);
+
+ 
+[2024-03-12T17:32:15.606+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-12T17:32:15.772+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-12T17:32:15.916+0000] {sql.py:457} INFO - Running statement: insert into MRR_Dim_Products(DW_Prdocut_ID,Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,Valid_From,Valid_Until)
+select * from Raw_Products;
+
+
+insert into MRR_Dim_Customers(DW_Customer_ID,Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax,Valid_From,Valid_Until)
+select * from Raw_Customers;
+
+
+insert into MRR_Dim_Employees(DW_Employee_ID,Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary,Valid_From,Valid_Until)
+select * from Raw_Employees;
+
+
+insert into MRR_Fact_Orders(Order_ID,Order_Time,Customer_ID,Employee_ID,Shipper_ID,Freight)
+select * from Raw_Orders
+where Order_ID not in (
+			select distinct Order_ID 
+			from DWH_Fact_Product_In_Order);
+
+
+
+insert into MRR_Fact_Details(Order_ID,Product_ID,Quantity)
+select * from Raw_OrderDetails
+where Order_ID not in (
+			select distinct Order_ID 
+			from DWH_Fact_Product_In_Order);
+
+ , parameters: None
+[2024-03-12T17:32:15.987+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UndefinedTable: relation "mrr_dim_products" does not exist
+LINE 1: insert into MRR_Dim_Products(DW_Prdocut_ID,Product_ID,Produc...
+                    ^
+
+[2024-03-12T17:32:16.135+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=raw2mrr, execution_date=20240303T060000, start_date=20240312T173213, end_date=20240312T173216
+[2024-03-12T17:32:16.341+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 393 for task raw2mrr (relation "mrr_dim_products" does not exist
+LINE 1: insert into MRR_Dim_Products(DW_Prdocut_ID,Product_ID,Produc...
+                    ^
+; 145)
+[2024-03-12T17:32:16.412+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-12T17:32:16.811+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

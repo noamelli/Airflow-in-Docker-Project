@@ -1,0 +1,76 @@
+[2024-03-16T10:00:17.831+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.referential_integrity manual__2024-03-16T06:27:40.650704+00:00 [queued]>
+[2024-03-16T10:00:17.852+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.referential_integrity manual__2024-03-16T06:27:40.650704+00:00 [queued]>
+[2024-03-16T10:00:17.853+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-03-16T10:00:17.885+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): referential_integrity> on 2024-03-16 06:27:40.650704+00:00
+[2024-03-16T10:00:17.895+0000] {standard_task_runner.py:60} INFO - Started process 1251 to run task
+[2024-03-16T10:00:17.902+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'referential_integrity', 'manual__2024-03-16T06:27:40.650704+00:00', '--job-id', '1740', '--raw', '--subdir', 'DAGS_FOLDER/etl2.py', '--cfg-path', '/tmp/tmp4tfrf3ng']
+[2024-03-16T10:00:17.907+0000] {standard_task_runner.py:88} INFO - Job 1740: Subtask referential_integrity
+[2024-03-16T10:00:17.988+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.referential_integrity manual__2024-03-16T06:27:40.650704+00:00 [running]> on host 3f630fdac388
+[2024-03-16T10:00:18.318+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='referential_integrity' AIRFLOW_CTX_EXECUTION_DATE='2024-03-16T06:27:40.650704+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-16T06:27:40.650704+00:00'
+[2024-03-16T10:00:18.320+0000] {sql.py:276} INFO - Executing: update STG_Fact_Orders
+set Customer_ID='not shown in dim'
+where Customer_ID not in (
+                            select distinct Customer_ID 
+                            from DWH_Dim_Customers
+                        );
+
+update STG_Fact_Orders
+set Employee_ID='not shown in dim'
+where Employee_ID not in (
+                            select distinct Employee_ID 
+                            from DWH_Dim_Employees
+                        );
+
+update STG_Fact_Details
+set Product_ID='not shown in dim'
+where Product_ID not in (
+                            select distinct Product_ID 
+                            from DWH_Dim_Products
+                        );
+
+[2024-03-16T10:00:18.333+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-16T10:00:18.344+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-16T10:00:18.363+0000] {sql.py:457} INFO - Running statement: update STG_Fact_Orders
+set Customer_ID='not shown in dim'
+where Customer_ID not in (
+                            select distinct Customer_ID 
+                            from DWH_Dim_Customers
+                        );
+
+update STG_Fact_Orders
+set Employee_ID='not shown in dim'
+where Employee_ID not in (
+                            select distinct Employee_ID 
+                            from DWH_Dim_Employees
+                        );
+
+update STG_Fact_Details
+set Product_ID='not shown in dim'
+where Product_ID not in (
+                            select distinct Product_ID 
+                            from DWH_Dim_Products
+                        );
+, parameters: None
+[2024-03-16T10:00:18.371+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.InvalidTextRepresentation: invalid input syntax for type integer: "not shown in dim"
+LINE 2: set Customer_ID='not shown in dim'
+                        ^
+
+[2024-03-16T10:00:18.387+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=referential_integrity, execution_date=20240316T062740, start_date=20240316T100017, end_date=20240316T100018
+[2024-03-16T10:00:18.408+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 1740 for task referential_integrity (invalid input syntax for type integer: "not shown in dim"
+LINE 2: set Customer_ID='not shown in dim'
+                        ^
+; 1251)
+[2024-03-16T10:00:18.477+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-16T10:00:18.504+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check
