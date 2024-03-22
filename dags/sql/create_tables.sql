@@ -1,37 +1,3 @@
-drop view if EXISTS snapshot_customers_transactions_month;
-drop table if  EXISTS Snapshot_Customers_Transactions_Arch;
-
-DROP TABLE IF EXISTS MRR_Dim_Customers;
-DROP TABLE IF EXISTS MRR_Dim_Employees;
-DROP TABLE IF EXISTS MRR_Dim_Products;
-DROP TABLE IF EXISTS MRR_Fact_Details;
-DROP TABLE IF EXISTS MRR_Fact_Orders;
-DROP TABLE IF EXISTS STG_Dim_Customers;
-DROP TABLE IF EXISTS STG_Dim_Dates;
-DROP TABLE IF EXISTS STG_Dim_Employees;
-DROP TABLE IF EXISTS STG_Dim_Products;
-DROP TABLE IF EXISTS STG_Dim_Time;
-DROP TABLE IF EXISTS STG_Fact_Details;
-DROP TABLE IF EXISTS STG_Fact_Orders;
-DROP TABLE IF EXISTS STG_Fact_Product_In_Order;
-DROP TABLE IF EXISTS DWH_Dim_Customers;
-DROP TABLE IF EXISTS DWH_Dim_Dates;
-DROP TABLE IF EXISTS DWH_Dim_Employees;
-DROP TABLE IF EXISTS DWH_Dim_Products;
-DROP TABLE IF EXISTS DWH_Fact_Product_In_Order;
-DROP TABLE IF EXISTS DWH_Dim_Time;
-DROP TABLE IF EXISTS Snapshot_Customers_Transactions_Arch;
-DROP TABLE IF EXISTS DWH_Snapshot_Customers_Transactions;
-DROP TABLE IF EXISTS DWH_Dim_Customers_backup;
-DROP TABLE IF EXISTS DWH_Dim_Dates_backup;
-DROP TABLE IF EXISTS DWH_Dim_Employees_backup;
-DROP TABLE IF EXISTS DWH_Dim_Products_backup;
-DROP TABLE IF EXISTS DWH_Fact_Product_In_Order_backup;
-DROP TABLE IF EXISTS DWH_Dim_Time_backup;
-DROP TABLE IF EXISTS DWH_Snapshot_Customers_Transactions_backup;
-
-
-
 CREATE TABLE IF NOT EXISTS MRR_Dim_Customers(
     Customer_ID varchar(50) null,
     Company_Name varchar(50) null,
@@ -43,9 +9,6 @@ CREATE TABLE IF NOT EXISTS MRR_Dim_Customers(
     Phone varchar(50) null,
     Fax varchar(50) null
 );
-
-
-
 
 CREATE TABLE IF NOT EXISTS MRR_Dim_Employees(
     Employee_ID varchar(50) null,
@@ -81,8 +44,6 @@ CREATE TABLE IF NOT EXISTS  MRR_Fact_Orders(
     Employee_ID varchar(50) null,
     Shipper_ID varchar(50) null
 );
-
-
 
 
 CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
