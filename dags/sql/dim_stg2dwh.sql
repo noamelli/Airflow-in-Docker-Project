@@ -38,7 +38,7 @@ select s.Customer_ID,s.Company_Name,s.Contact_Name,s.Street,s.City,s.Postal_Code
 from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
 where s.City <> d.City or s.Country <> d.Country;
 
--- -products
+--products
 
 -- insert all the new products records 
 insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
@@ -67,7 +67,7 @@ select s.Product_ID,s.Product_Name,s.Supplier,s.Category,s.Unit_Price,s.Unit_Cos
 from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
 where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier;
 
--- -employees
+-- employees
 
 -- insert all the new employees records 
 insert into DWH_Dim_Employees (Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)

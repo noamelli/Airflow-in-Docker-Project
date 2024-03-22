@@ -7,7 +7,6 @@ EXTRACT(MONTH FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE)
 EXTRACT(YEAR FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodYear,
 EXTRACT(QUARTER FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodQuarter;
 
---cross join is fine beacuse the view consists of one record- the crrent date 
     CREATE OR REPLACE VIEW Snapshot_Customers_Transactions_month AS
     SELECT DISTINCT 
         cd.StartOfPrevMonth,
@@ -48,17 +47,16 @@ EXTRACT(QUARTER FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DAT
         END AS Status
     FROM DWH_Dim_Customers c 
     CROSS JOIN current_dates cd; 
-    
--- null cause we dont care about not null they belong to prev months 
+        --cross join beacuse the view consists of one record   
+   
 
   DO $$
-BEGIN
+BEGIN   -- Loading to archive table and snapshot table only the previous month and load once only
 IF (SELECT MAX(StartOfMonth) FROM Snapshot_Customers_Transactions_Arch) <
    (SELECT StartOfPrevMonth FROM current_dates) 
-   
+
 THEN
-    -- Adding the new records to the archive table - incremental load
-    -- Load to archive table and snapshot table only the previous month and load once only
+        -- Adding the new records to the archive table - incremental loading
     INSERT INTO Snapshot_Customers_Transactions_Arch (Customer_ID, StartOfMonth, Status)
     SELECT 
         Customer_ID,
@@ -66,6 +64,8 @@ THEN
         Status 
     FROM Snapshot_Customers_Transactions_month t
     WHERE (Customer_ID,StartOfPrevMonth,Status) NOT IN (SELECT Customer_ID,StartOfPrevMonth,Status FROM Snapshot_Customers_Transactions_Arch);
+    
+    
     INSERT INTO DWH_Snapshot_Customers_Transactions (Year, Quarter, Month, Country, City, Count_New_Customers,
                                                      Count_Regular, Count_Reactivated, Count_Abandons, Count_Total)
     SELECT 

@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS MRR_Dim_Employees(
     Month_Salary varchar(50) null
 );
 
-
 CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
     Product_ID varchar(50) null,
     Product_Name varchar(50) null,
@@ -30,7 +29,6 @@ CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
     Unit_Price varchar(50) null,
     Unit_Cost varchar(50) null
 );
-
 
 CREATE TABLE IF NOT EXISTS  MRR_Fact_Details(
     Order_ID varchar(50) null,
@@ -45,7 +43,6 @@ CREATE TABLE IF NOT EXISTS  MRR_Fact_Orders(
     Shipper_ID varchar(50) null
 );
 
-
 CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
     Customer_ID int not null,
     Company_Name varchar(50) not null,
@@ -59,7 +56,6 @@ CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
     PRIMARY KEY (Customer_ID)
 );
 
-
 CREATE TABLE IF NOT EXISTS  STG_Dim_Dates(
     Date date not null,
     Year int not null,
@@ -68,9 +64,6 @@ CREATE TABLE IF NOT EXISTS  STG_Dim_Dates(
     Day int not null,
     PRIMARY KEY (Date)
 );
-
-
-
 
 CREATE TABLE IF NOT EXISTS  STG_Dim_Employees(
     Employee_ID int not null,
@@ -94,7 +87,6 @@ CREATE TABLE IF NOT EXISTS STG_Dim_Products(
     Unit_Cost decimal(15,5) null,
     PRIMARY KEY (Product_ID)
 );
-
 
 CREATE TABLE IF NOT EXISTS STG_Dim_Time(
     DateTime  timestamp  not null,
@@ -195,6 +187,7 @@ CREATE TABLE IF NOT EXISTS DWH_Dim_Time(
     Hour time(7) not null,
     PRIMARY KEY (DateTime )
 );
+
 CREATE TABLE IF NOT EXISTS Snapshot_Customers_Transactions_Arch(
     Customer_ID int not null,
     StartOfMonth date not null,
