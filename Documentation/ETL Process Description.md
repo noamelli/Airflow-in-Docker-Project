@@ -5,7 +5,7 @@
 2. Truncate MRR and STG tables, so we can load them with new records.
 3. Backup DWH tables - truncate backup tables and then load them with the records in DWH tables. 
 4. Extract data from Excel and load to MRR tables. Unlike the other tasks, this one uses a python operator and executes functions that use pandas in order to read from Excel. 
-    1. Dim tables - the initial loading to MRR dim tables is full. 
+    1. Dim tables - the initial loading to MRR tables is full. 
     2. Fact tables - the initial loading to MRR fact tables is incremental. We will load new orders that are not shown in the DWH tables. 
     There are two MRR fact tables: orders and details. The details table shows the quantity sold for each product in each order. 
     - The reason for this is the idea that an order that happened in the past will not change, so the record will not be updated either.
