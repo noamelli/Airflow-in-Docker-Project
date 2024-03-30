@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
     isValid varchar(50) not null
 );
 
+
 CREATE TABLE IF NOT EXISTS  MRR_Fact_Details(
     Order_ID varchar(50) null,
     Product_ID varchar(50) null,
