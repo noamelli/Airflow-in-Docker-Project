@@ -1,5 +1,5 @@
 --The rellevant perdios for loading are months that have been ended and have not been loaded yet 
-CREATE OR REPLACE VIEW rellevant_periods AS 
+CREATE OR REPLACE VIEW relevant_periods AS 
 SELECT DISTINCT 
 (DATE_TRUNC('MONTH', order_time))::DATE AS StartOfMonth,
 (DATE_TRUNC('MONTH', order_time) + INTERVAL '1 month' - INTERVAL '1 day')::DATE AS EndOfMonth
@@ -51,7 +51,7 @@ AND (DATE_TRUNC('MONTH', order_time))::DATE <> (DATE_TRUNC('MONTH', CURRENT_DATE
             ELSE 'regular' 
         END AS Status
     FROM DWH_Dim_Customers c
-    CROSS JOIN rellevant_periods cd -- Showing all the optional combinations 
+    CROSS JOIN relevant_periods cd -- Showing all the optional combinations 
     WHERE c.Valid_Until IS NULL ; 
 
 
