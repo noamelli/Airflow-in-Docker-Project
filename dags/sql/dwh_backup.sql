@@ -31,5 +31,5 @@ insert into DWH_Fact_Product_In_Order_Backup(Order_ID,DW_Prdocut_ID,DW_Customer_
 select * from DWH_Fact_Product_In_Order;
 
 
-insert into DWH_Snapshot_Customers_Transactions_Backup(Year,Quarter,Month,Country,City,Count_New_Customers,Count_Regular,Count_Reactivated,Count_Abandons,Count_Total)
+insert into DWH_Snapshot_Customers_Transactions_Backup(Year,Quarter,Month,Country,Count_New_Customers,Count_Regular,Count_Reactivated,Count_Abandons,Count_Total)
 select * from DWH_Snapshot_Customers_Transactions;

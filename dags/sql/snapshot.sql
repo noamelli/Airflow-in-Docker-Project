@@ -1,38 +1,43 @@
+--The rellevant perdios for loading are months that have been ended and have not been loaded yet 
+CREATE OR REPLACE VIEW rellevant_periods AS 
+SELECT DISTINCT 
+(DATE_TRUNC('MONTH', order_time))::DATE AS StartOfMonth,
+(DATE_TRUNC('MONTH', order_time) + INTERVAL '1 month' - INTERVAL '1 day')::DATE AS EndOfMonth
+FROM dwh_fact_product_in_order
+WHERE (DATE_TRUNC('MONTH', order_time))::DATE NOT IN  
+                    (SELECT DISTINCT StartOfMonth
+                     FROM Snapshot_Customers_Transactions_Arch)
+AND (DATE_TRUNC('MONTH', order_time))::DATE <> (DATE_TRUNC('MONTH', CURRENT_DATE))::DATE    ; 
 
-CREATE OR REPLACE VIEW current_dates AS 
-SELECT 
-(DATE_TRUNC('MONTH', CURRENT_DATE) - INTERVAL '1 MONTH')::DATE AS StartOfPrevMonth,
-(DATE_TRUNC('MONTH', CURRENT_DATE) - INTERVAL '1 DAY')::DATE AS EndOfPrevMonth,
-EXTRACT(MONTH FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodMonth,
-EXTRACT(YEAR FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodYear,
-EXTRACT(QUARTER FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodQuarter;
 
-    CREATE OR REPLACE VIEW Snapshot_Customers_Transactions_month AS
+
+    CREATE OR REPLACE VIEW status_calculation AS
     SELECT DISTINCT 
-        cd.StartOfPrevMonth,
-        c.Customer_ID,
+        cd.StartOfMonth,
+        c.DW_Customer_ID,
+        C.Customer_ID,
         CASE 
             WHEN EXISTS (
                 SELECT 1
-                FROM DWH_Dim_Customers u
-                WHERE u.Customer_ID = c.Customer_ID
-                GROUP BY u.Customer_ID
-                HAVING MIN(EXTRACT(MONTH FROM valid_from)) = cd.PrevPeriodMonth
-                AND MIN(EXTRACT(YEAR FROM valid_from)) = cd.PrevPeriodYear
+                FROM DWH_Dim_Customers t join DWH_Fact_Product_In_Order p
+                ON p.DW_Customer_ID =t.DW_Customer_ID
+                WHERE t.Customer_ID = c.Customer_ID
+                GROUP BY t.Customer_ID
+                HAVING MIN ((DATE_TRUNC('MONTH', p.order_time))::DATE) = cd.StartOfMonth
             ) THEN 'new'
             WHEN NOT EXISTS (
                 SELECT 1
                 FROM DWH_Dim_Customers t join DWH_Fact_Product_In_Order p
                 ON p.DW_Customer_ID =t.DW_Customer_ID
                 WHERE t.Customer_ID = c.Customer_ID 
-                AND DATE(Order_Time) <= EndOfPrevMonth
-                AND DATE(Order_Time) >= StartOfPrevMonth - INTERVAL '2 month'
+                AND DATE(Order_Time) <= cd.EndOfMonth
+                AND DATE(Order_Time) >= cd.StartOfMonth - INTERVAL '2 month'
             ) THEN 'abandoned'
             WHEN EXISTS (
                 SELECT 1
                 FROM Snapshot_Customers_Transactions_Arch s
                 WHERE s.Customer_ID = c.Customer_ID 
-                AND s.StartOfMonth = DATE(cd.StartOfPrevMonth) - INTERVAL '1 month'
+                AND s.StartOfMonth = DATE(cd.StartOfMonth) - INTERVAL '1 month'
                 AND status ='abandoned' 
             ) 
              AND EXISTS (
@@ -40,56 +45,47 @@ EXTRACT(QUARTER FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DAT
                 FROM DWH_Dim_Customers t join DWH_Fact_Product_In_Order p
                 ON p.DW_Customer_ID = t.DW_Customer_ID
                 WHERE t.Customer_ID = c.Customer_ID 
-                AND DATE(Order_Time) <= cd.EndOfPrevMonth
-                AND DATE(Order_Time) >= cd.StartOfPrevMonth
+                AND DATE(Order_Time) <= cd.EndOfMonth
+                AND DATE(Order_Time) >= cd.StartOfMonth
             ) THEN 'reactivated' 
             ELSE 'regular' 
         END AS Status
-    FROM DWH_Dim_Customers c 
-    CROSS JOIN current_dates cd; 
-        --cross join beacuse the view consists of one record   
-   
+    FROM DWH_Dim_Customers c
+    CROSS JOIN rellevant_periods cd -- Showing all the optional combinations 
+    WHERE c.Valid_Until IS NULL ; 
 
-  DO $$
-BEGIN   -- Loading to archive table and snapshot table only the previous month and load once only
-IF (SELECT MAX(StartOfMonth) FROM Snapshot_Customers_Transactions_Arch) <
-   (SELECT StartOfPrevMonth FROM current_dates) 
 
-THEN
-        -- Adding the new records to the archive table - incremental loading
-    INSERT INTO Snapshot_Customers_Transactions_Arch (Customer_ID, StartOfMonth, Status)
+    -- Adding the new records to the archive table - it contains historical data beacuse this data is being used in status_calculation table 
+    INSERT INTO Snapshot_Customers_Transactions_Arch (DW_Customer_ID, Customer_ID, StartOfMonth, Status)
     SELECT 
+        DW_Customer_ID,
         Customer_ID,
-        StartOfPrevMonth,
+        StartOfMonth,
         Status 
-    FROM Snapshot_Customers_Transactions_month t
-    WHERE (Customer_ID,StartOfPrevMonth,Status) NOT IN (SELECT Customer_ID,StartOfPrevMonth,Status FROM Snapshot_Customers_Transactions_Arch);
+    FROM status_calculation t ; 
+
     
-    
-    INSERT INTO DWH_Snapshot_Customers_Transactions (Year, Quarter, Month, Country, City, Count_New_Customers,
+    --Using incremental loading because we Snapshot_Customers_Transactions_Arch contains historical data 
+    INSERT INTO DWH_Snapshot_Customers_Transactions (Year, Quarter, Month, Country, Count_New_Customers,
                                                      Count_Regular, Count_Reactivated, Count_Abandons, Count_Total)
     SELECT 
-        PrevPeriodYear,
-        PrevPeriodQuarter,
-        PrevPeriodMonth,
-        C.Country, 
-        C.City,
-        SUM(CASE WHEN A.Status='new' THEN 1 ELSE 0 END),
-        SUM(CASE WHEN A.Status='regular' THEN 1 ELSE 0 END),
-        SUM(CASE WHEN A.Status='reactivated' THEN 1 ELSE 0 END),
-        SUM(CASE WHEN A.Status='abandoned' THEN 1 ELSE 0 END),
-        COUNT(DISTINCT DW_Customer_ID) 
+    EXTRACT (year from StartOfMonth),
+    EXTRACT (Quarter from StartOfMonth),
+    EXTRACT (month from StartOfMonth),
+    C.Country, 
+    SUM(CASE WHEN A.Status='new' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN A.Status='regular' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN A.Status='reactivated' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN A.Status='abandoned' THEN 1 ELSE 0 END),
+    COUNT(DISTINCT A.DW_Customer_ID) 
     FROM Snapshot_Customers_Transactions_Arch A JOIN DWH_Dim_Customers C 
-    ON A.Customer_ID=C.Customer_ID
-    WHERE (PrevPeriodYear,PrevPeriodQuarter,PrevPeriodMonth,C.Country, C.City) 
-    NOT IN (SELECT PrevPeriodYear,PrevPeriodQuarter,PrevPeriodMonth,C.Country, C.City FROM DWH_Snapshot_Customers_Transactions)
+    ON A.DW_Customer_ID=C.DW_Customer_ID
+    WHERE (EXTRACT (year from StartOfMonth),EXTRACT (Quarter from StartOfMonth),EXTRACT (month from StartOfMonth),C.Country, C.City) 
+    NOT IN (select distinct Year,Quarter,month,Country, City FROM DWH_Snapshot_Customers_Transactions)
     GROUP BY 
-        PrevPeriodYear,
-        PrevPeriodQuarter,
-        PrevPeriodMonth,
-        C.Country, 
-        C.City;
-ELSE
-    RAISE NOTICE 'No records found for archiving.';
-END IF;
-END $$;
+    EXTRACT (year from StartOfMonth),
+    EXTRACT (Quarter from StartOfMonth),
+    EXTRACT (month from StartOfMonth),
+    C.Country;
+
+

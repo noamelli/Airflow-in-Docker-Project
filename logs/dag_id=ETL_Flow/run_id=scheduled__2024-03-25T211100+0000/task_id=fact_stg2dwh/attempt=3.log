@@ -1,0 +1,61 @@
+[2024-03-30T11:55:02.099+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.fact_stg2dwh scheduled__2024-03-25T21:11:00+00:00 [queued]>
+[2024-03-30T11:55:02.119+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.fact_stg2dwh scheduled__2024-03-25T21:11:00+00:00 [queued]>
+[2024-03-30T11:55:02.120+0000] {taskinstance.py:2193} INFO - Starting attempt 3 of 8
+[2024-03-30T11:55:02.156+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): fact_stg2dwh> on 2024-03-25 21:11:00+00:00
+[2024-03-30T11:55:02.167+0000] {standard_task_runner.py:60} INFO - Started process 15726 to run task
+[2024-03-30T11:55:02.175+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'fact_stg2dwh', 'scheduled__2024-03-25T21:11:00+00:00', '--job-id', '2406', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpm9qump5x']
+[2024-03-30T11:55:02.183+0000] {standard_task_runner.py:88} INFO - Job 2406: Subtask fact_stg2dwh
+[2024-03-30T11:55:02.317+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.fact_stg2dwh scheduled__2024-03-25T21:11:00+00:00 [running]> on host cb216a3a40e5
+[2024-03-30T11:55:02.816+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='fact_stg2dwh' AIRFLOW_CTX_EXECUTION_DATE='2024-03-25T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='3' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-25T21:11:00+00:00'
+[2024-03-30T11:55:02.818+0000] {sql.py:276} INFO - Executing: insert into DWH_Fact_Product_In_Order (Order_ID,DW_Prdocut_ID,DW_Customer_ID,DW_Employee_ID,Order_Time,Quantity,Total_Price,Total_Cost,Shipper_ID)
+select 
+o.Order_ID,
+p.DW_Prdocut_ID,
+c.DW_Customer_ID,
+e.DW_Employee_ID,
+o.Order_Time,
+d.Quantity,
+(d.Quantity * p.Unit_Price) as Total_Price,
+(d.Quantity * p.Unit_Cost) as Total_Cost,
+Shipper_ID
+from STG_Fact_Orders o 
+join STG_Fact_Details d on o.Order_ID=d.Order_ID 
+join DWH_Dim_Customers c on o.Customer_ID=c.Customer_ID
+join DWH_Dim_Employees e on o.Employee_ID=e.Employee_ID
+join DWH_Dim_Products p on d.Product_ID=p.Product_ID
+where p.Valid_Until is null and e.Valid_Until is null and c.Valid_Until is null 
+and (o.Order_ID,p.DW_Prdocut_ID) not in ( select distinct Order_ID, DW_Prdocut_ID
+                                          from DWH_Fact_Product_In_Order
+                                        )
+[2024-03-30T11:55:02.840+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-30T11:55:02.856+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-30T11:55:02.887+0000] {sql.py:457} INFO - Running statement: insert into DWH_Fact_Product_In_Order (Order_ID,DW_Prdocut_ID,DW_Customer_ID,DW_Employee_ID,Order_Time,Quantity,Total_Price,Total_Cost,Shipper_ID)
+select 
+o.Order_ID,
+p.DW_Prdocut_ID,
+c.DW_Customer_ID,
+e.DW_Employee_ID,
+o.Order_Time,
+d.Quantity,
+(d.Quantity * p.Unit_Price) as Total_Price,
+(d.Quantity * p.Unit_Cost) as Total_Cost,
+Shipper_ID
+from STG_Fact_Orders o 
+join STG_Fact_Details d on o.Order_ID=d.Order_ID 
+join DWH_Dim_Customers c on o.Customer_ID=c.Customer_ID
+join DWH_Dim_Employees e on o.Employee_ID=e.Employee_ID
+join DWH_Dim_Products p on d.Product_ID=p.Product_ID
+where p.Valid_Until is null and e.Valid_Until is null and c.Valid_Until is null 
+and (o.Order_ID,p.DW_Prdocut_ID) not in ( select distinct Order_ID, DW_Prdocut_ID
+                                          from DWH_Fact_Product_In_Order
+                                        ), parameters: None
+[2024-03-30T11:55:02.912+0000] {sql.py:466} INFO - Rows affected: 0
+[2024-03-30T11:55:02.915+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/providers/common/sql/hooks/sql.py:407: AirflowProviderDeprecationWarning: Call to deprecated method _make_common_data_structure. (The `_make_serializable` method is deprecated and support will be removed in a future version of the common.sql provider. Please update the DbApiHook's provider to a version based on common.sql >= 1.9.1.)
+  result = self._make_common_data_structure(handler(cur))
+
+[2024-03-30T11:55:02.944+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=fact_stg2dwh, execution_date=20240325T211100, start_date=20240330T115502, end_date=20240330T115502
+[2024-03-30T11:55:03.034+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-03-30T11:55:03.083+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-03-30T11:55:03.127+0000] {taskinstance.py:3309} INFO - 1 downstream tasks scheduled from follow-on schedule check

@@ -1,0 +1,69 @@
+[2024-03-27T12:39:26.468+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.fact_stg2dwh manual__2024-03-27T12:33:50.515833+00:00 [queued]>
+[2024-03-27T12:39:26.479+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.fact_stg2dwh manual__2024-03-27T12:33:50.515833+00:00 [queued]>
+[2024-03-27T12:39:26.480+0000] {taskinstance.py:2193} INFO - Starting attempt 2 of 6
+[2024-03-27T12:39:26.501+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): fact_stg2dwh> on 2024-03-27 12:33:50.515833+00:00
+[2024-03-27T12:39:26.508+0000] {standard_task_runner.py:60} INFO - Started process 5263 to run task
+[2024-03-27T12:39:26.511+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'fact_stg2dwh', 'manual__2024-03-27T12:33:50.515833+00:00', '--job-id', '2311', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpep3ec3f0']
+[2024-03-27T12:39:26.515+0000] {standard_task_runner.py:88} INFO - Job 2311: Subtask fact_stg2dwh
+[2024-03-27T12:39:26.570+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.fact_stg2dwh manual__2024-03-27T12:33:50.515833+00:00 [running]> on host cb216a3a40e5
+[2024-03-27T12:39:26.829+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='fact_stg2dwh' AIRFLOW_CTX_EXECUTION_DATE='2024-03-27T12:33:50.515833+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-27T12:33:50.515833+00:00'
+[2024-03-27T12:39:26.831+0000] {sql.py:276} INFO - Executing: insert into DWH_Fact_Product_In_Order (Order_ID,DW_Prdocut_ID,DW_Customer_ID,DW_Employee_ID,Order_Time,Quantity,Total_Price,Total_Cost,Shipper_ID)
+select 
+o.Order_ID,
+p.DW_Prdocut_ID,
+c.DW_Customer_ID,
+e.DW_Employee_ID,
+o.Order_Time,
+d.Quantity,
+(d.Quantity * p.Unit_Price) as Total_Price,
+(d.Quantity * p.Unit_Cost) as Total_Cost,
+Shipper_ID
+from STG_Fact_Orders o 
+join STG_Fact_Details d on o.Order_ID=d.Order_ID 
+join DWH_Dim_Customers c on o.Customer_ID=c.Customer_ID
+join DWH_Dim_Employees e on o.Employee_ID=e.Employee_ID
+join DWH_Dim_Products p on d.Product_ID=p.Product_ID
+where p.Valid_Until is null and e.Valid_Until is null and c.Valid_Until is null 
+[2024-03-27T12:39:26.841+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-27T12:39:26.850+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-27T12:39:26.866+0000] {sql.py:457} INFO - Running statement: insert into DWH_Fact_Product_In_Order (Order_ID,DW_Prdocut_ID,DW_Customer_ID,DW_Employee_ID,Order_Time,Quantity,Total_Price,Total_Cost,Shipper_ID)
+select 
+o.Order_ID,
+p.DW_Prdocut_ID,
+c.DW_Customer_ID,
+e.DW_Employee_ID,
+o.Order_Time,
+d.Quantity,
+(d.Quantity * p.Unit_Price) as Total_Price,
+(d.Quantity * p.Unit_Cost) as Total_Cost,
+Shipper_ID
+from STG_Fact_Orders o 
+join STG_Fact_Details d on o.Order_ID=d.Order_ID 
+join DWH_Dim_Customers c on o.Customer_ID=c.Customer_ID
+join DWH_Dim_Employees e on o.Employee_ID=e.Employee_ID
+join DWH_Dim_Products p on d.Product_ID=p.Product_ID
+where p.Valid_Until is null and e.Valid_Until is null and c.Valid_Until is null , parameters: None
+[2024-03-27T12:39:26.874+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "dwh_fact_product_in_order_pkey"
+DETAIL:  Key (order_id, dw_prdocut_id)=(10248, 11) already exists.
+
+[2024-03-27T12:39:26.884+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=fact_stg2dwh, execution_date=20240327T123350, start_date=20240327T123926, end_date=20240327T123926
+[2024-03-27T12:39:26.899+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 2311 for task fact_stg2dwh (duplicate key value violates unique constraint "dwh_fact_product_in_order_pkey"
+DETAIL:  Key (order_id, dw_prdocut_id)=(10248, 11) already exists.
+; 5263)
+[2024-03-27T12:39:26.926+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-27T12:39:26.938+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-03-27T12:39:26.956+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

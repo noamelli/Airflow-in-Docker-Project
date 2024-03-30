@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS MRR_Dim_Customers(
     Postal_Code varchar(50) null,
     Country varchar(50) null,
     Phone varchar(50) null,
-    Fax varchar(50) null
+    Fax varchar(50) null,
+    isValid varchar(50) not null
 );
 
 CREATE TABLE IF NOT EXISTS MRR_Dim_Employees(
@@ -18,7 +19,8 @@ CREATE TABLE IF NOT EXISTS MRR_Dim_Employees(
     Hire_Date varchar(50) null,
     Office varchar(50) null,
     Reports_To varchar(50) null,
-    Month_Salary varchar(50) null
+    Month_Salary varchar(50) null,
+    isValid varchar(50) not null
 );
 
 CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
@@ -27,20 +29,23 @@ CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
     Supplier varchar(50) null,
     Category varchar(50) null,
     Unit_Price varchar(50) null,
-    Unit_Cost varchar(50) null
+    Unit_Cost varchar(50) null,
+    isValid varchar(50) not null
 );
 
 CREATE TABLE IF NOT EXISTS  MRR_Fact_Details(
     Order_ID varchar(50) null,
     Product_ID varchar(50) null,
-    Quantity varchar(50) null
+    Quantity varchar(50) null,
+    isValid varchar(50) not null
 );
 CREATE TABLE IF NOT EXISTS  MRR_Fact_Orders(
     Order_ID varchar(50) null,
     Order_Time varchar(50) null,
     Customer_ID varchar(50) null,
     Employee_ID varchar(50) null,
-    Shipper_ID varchar(50) null
+    Shipper_ID varchar(50) null,
+    isValid varchar(50) not null
 );
 
 CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
@@ -89,9 +94,9 @@ CREATE TABLE IF NOT EXISTS STG_Dim_Products(
 );
 
 CREATE TABLE IF NOT EXISTS STG_Dim_Time(
-    DateTime  timestamp  not null,
+    DateTime  timestamp not null,
     Date date not null,
-    Hour time (7) not null,
+    Hour int not null,
     PRIMARY KEY (DateTime )
 );
 
@@ -182,13 +187,14 @@ CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order(
 
 
 CREATE TABLE IF NOT EXISTS DWH_Dim_Time(
-    DateTime  timestamp  not null,
+    DateTime  timestamp not null,
     Date date not null,
-    Hour time(7) not null,
+    Hour int not null,
     PRIMARY KEY (DateTime )
 );
 
 CREATE TABLE IF NOT EXISTS Snapshot_Customers_Transactions_Arch(
+    DW_Customer_ID int not null,
     Customer_ID int not null,
     StartOfMonth date not null,
     Status varchar(10) not null
@@ -199,13 +205,12 @@ CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions(
     Quarter int not null,
     Month int not null,
     Country varchar(50) not null,
-    City varchar(50) not null,
     Count_New_Customers int not null,
     Count_Regular int not null,
     Count_Reactivated int not null,
     Count_Abandons int not null,
     Count_Total int not null,
-    PRIMARY KEY (Year, Quarter, Month, Country, City)
+    PRIMARY KEY (Year, Quarter, Month, Country)
 );
 
 CREATE TABLE IF NOT EXISTS DWH_Dim_Customers_backup(
@@ -282,7 +287,7 @@ CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order_backup(
 CREATE TABLE IF NOT EXISTS DWH_Dim_Time_backup(
     timestamp  timestamp  not null,
     Date date not null,
-    Hour time(7) not null,
+    Hour int not null,
     PRIMARY KEY (timestamp )
 );
 
@@ -292,13 +297,12 @@ CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions_backup(
     Quarter int not null,
     Month int not null,
     Country varchar(50) not null,
-    City varchar(50) not null,
     Count_New_Customers int not null,
     Count_Regular int not null,
     Count_Reactivated int not null,
     Count_Abandons int not null,
     Count_Total int not null,
-    PRIMARY KEY (Year, Quarter, Month, Country, City)
+    PRIMARY KEY (Year, Quarter, Month, Country)
 );
 
 

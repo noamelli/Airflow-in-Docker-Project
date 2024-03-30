@@ -1,0 +1,28 @@
+[2024-03-28T17:29:17.474+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.insert_data_from_files scheduled__2024-03-26T21:11:00+00:00 [queued]>
+[2024-03-28T17:29:17.494+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.insert_data_from_files scheduled__2024-03-26T21:11:00+00:00 [queued]>
+[2024-03-28T17:29:17.495+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-03-28T17:29:17.538+0000] {taskinstance.py:2214} INFO - Executing <Task(PythonOperator): insert_data_from_files> on 2024-03-26 21:11:00+00:00
+[2024-03-28T17:29:17.550+0000] {standard_task_runner.py:60} INFO - Started process 10110 to run task
+[2024-03-28T17:29:17.558+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'insert_data_from_files', 'scheduled__2024-03-26T21:11:00+00:00', '--job-id', '2335', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpznvgr29n']
+[2024-03-28T17:29:17.565+0000] {standard_task_runner.py:88} INFO - Job 2335: Subtask insert_data_from_files
+[2024-03-28T17:29:17.697+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.insert_data_from_files scheduled__2024-03-26T21:11:00+00:00 [running]> on host cb216a3a40e5
+[2024-03-28T17:29:18.445+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='insert_data_from_files' AIRFLOW_CTX_EXECUTION_DATE='2024-03-26T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-26T21:11:00+00:00'
+[2024-03-28T17:29:19.604+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-28T17:29:20.118+0000] {sql.py:572} INFO - Done loading. Loaded a total of 92 rows into MRR_Dim_Customers
+[2024-03-28T17:29:20.290+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-28T17:29:20.575+0000] {sql.py:572} INFO - Done loading. Loaded a total of 47 rows into MRR_Dim_Employees
+[2024-03-28T17:29:20.677+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-28T17:29:21.072+0000] {sql.py:572} INFO - Done loading. Loaded a total of 77 rows into MRR_Dim_Products
+[2024-03-28T17:29:21.462+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-28T17:29:25.885+0000] {sql.py:572} INFO - Done loading. Loaded a total of 836 rows into MRR_Fact_Orders
+[2024-03-28T17:29:26.362+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-28T17:29:31.220+0000] {sql.py:568} INFO - Loaded 1000 rows into MRR_Fact_Details so far
+[2024-03-28T17:29:35.469+0000] {sql.py:568} INFO - Loaded 2000 rows into MRR_Fact_Details so far
+[2024-03-28T17:29:36.210+0000] {sql.py:572} INFO - Done loading. Loaded a total of 2172 rows into MRR_Fact_Details
+[2024-03-28T17:29:36.212+0000] {python.py:202} INFO - Done. Returned value was: None
+[2024-03-28T17:29:36.242+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=insert_data_from_files, execution_date=20240326T211100, start_date=20240328T172917, end_date=20240328T172936
+[2024-03-28T17:29:36.329+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-03-28T17:29:36.352+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-03-28T17:29:36.405+0000] {taskinstance.py:3309} INFO - 1 downstream tasks scheduled from follow-on schedule check

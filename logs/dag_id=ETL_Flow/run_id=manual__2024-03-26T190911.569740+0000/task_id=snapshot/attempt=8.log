@@ -1,0 +1,226 @@
+[2024-03-27T12:41:58.581+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.snapshot manual__2024-03-26T19:09:11.569740+00:00 [queued]>
+[2024-03-27T12:41:58.599+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.snapshot manual__2024-03-26T19:09:11.569740+00:00 [queued]>
+[2024-03-27T12:41:58.601+0000] {taskinstance.py:2193} INFO - Starting attempt 8 of 13
+[2024-03-27T12:41:58.623+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): snapshot> on 2024-03-26 19:09:11.569740+00:00
+[2024-03-27T12:41:58.630+0000] {standard_task_runner.py:60} INFO - Started process 5309 to run task
+[2024-03-27T12:41:58.634+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'snapshot', 'manual__2024-03-26T19:09:11.569740+00:00', '--job-id', '2313', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpm73v4ek7']
+[2024-03-27T12:41:58.637+0000] {standard_task_runner.py:88} INFO - Job 2313: Subtask snapshot
+[2024-03-27T12:41:58.705+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.snapshot manual__2024-03-26T19:09:11.569740+00:00 [running]> on host cb216a3a40e5
+[2024-03-27T12:41:59.007+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='snapshot' AIRFLOW_CTX_EXECUTION_DATE='2024-03-26T19:09:11.569740+00:00' AIRFLOW_CTX_TRY_NUMBER='8' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-03-26T19:09:11.569740+00:00'
+[2024-03-27T12:41:59.009+0000] {sql.py:276} INFO - Executing: 
+CREATE OR REPLACE VIEW current_dates AS 
+SELECT 
+(DATE_TRUNC('MONTH', CURRENT_DATE) - INTERVAL '1 MONTH')::DATE AS StartOfPrevMonth,
+(DATE_TRUNC('MONTH', CURRENT_DATE) - INTERVAL '1 DAY')::DATE AS EndOfPrevMonth,
+EXTRACT(MONTH FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodMonth,
+EXTRACT(YEAR FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodYear,
+EXTRACT(QUARTER FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodQuarter;
+
+    CREATE OR REPLACE VIEW Snapshot_Customers_Transactions_month AS
+    SELECT DISTINCT 
+        cd.StartOfPrevMonth,
+        c.Customer_ID,
+        CASE 
+            WHEN EXISTS (
+                SELECT 1
+                FROM DWH_Dim_Customers u
+                WHERE u.Customer_ID = c.Customer_ID
+                GROUP BY u.Customer_ID
+                HAVING MIN(EXTRACT(MONTH FROM valid_from)) = cd.PrevPeriodMonth
+                AND MIN(EXTRACT(YEAR FROM valid_from)) = cd.PrevPeriodYear
+            ) THEN 'new'
+            WHEN NOT EXISTS (
+                SELECT 1
+                FROM DWH_Dim_Customers t join DWH_Fact_Product_In_Order p
+                ON p.DW_Customer_ID =t.DW_Customer_ID
+                WHERE t.Customer_ID = c.Customer_ID 
+                AND DATE(Order_Time) <= EndOfPrevMonth
+                AND DATE(Order_Time) >= StartOfPrevMonth - INTERVAL '2 month'
+            ) THEN 'abandoned'
+            WHEN EXISTS (
+                SELECT 1
+                FROM Snapshot_Customers_Transactions_Arch s
+                WHERE s.Customer_ID = c.Customer_ID 
+                AND s.StartOfMonth = DATE(cd.StartOfPrevMonth) - INTERVAL '1 month'
+                AND status ='abandoned' 
+            ) 
+             AND EXISTS (
+                SELECT 1
+                FROM DWH_Dim_Customers t join DWH_Fact_Product_In_Order p
+                ON p.DW_Customer_ID = t.DW_Customer_ID
+                WHERE t.Customer_ID = c.Customer_ID 
+                AND DATE(Order_Time) <= cd.EndOfPrevMonth
+                AND DATE(Order_Time) >= cd.StartOfPrevMonth
+            ) THEN 'reactivated' 
+            ELSE 'regular' 
+        END AS Status
+    FROM DWH_Dim_Customers c 
+    CROSS JOIN current_dates cd; 
+        --cross join beacuse the view consists of one record   
+   
+
+--   DO $$
+-- BEGIN   -- Loading to archive table and snapshot table only the previous month and load once only
+-- IF (SELECT MAX(StartOfMonth) FROM Snapshot_Customers_Transactions_Arch) <
+--    (SELECT StartOfPrevMonth FROM current_dates) 
+
+-- THEN
+        -- Adding the new records to the archive table - incremental loading
+    INSERT INTO Snapshot_Customers_Transactions_Arch (Customer_ID, StartOfMonth, Status)
+    SELECT 
+        Customer_ID,
+        StartOfPrevMonth,
+        Status 
+    FROM Snapshot_Customers_Transactions_month t
+    WHERE (Customer_ID,StartOfPrevMonth,Status) NOT IN (SELECT Customer_ID,StartOfPrevMonth,Status FROM Snapshot_Customers_Transactions_Arch);
+    
+    
+    INSERT INTO DWH_Snapshot_Customers_Transactions (Year, Quarter, Month, Country, City, Count_New_Customers,
+                                                     Count_Regular, Count_Reactivated, Count_Abandons, Count_Total)
+    SELECT 
+        YEAR(StartOfMonth),
+        QUARTER(StartOfMonth),
+        MONTH(StartOfMonth),
+        C.Country, 
+        C.City,
+        SUM(CASE WHEN A.Status='new' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN A.Status='regular' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN A.Status='reactivated' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN A.Status='abandoned' THEN 1 ELSE 0 END),
+        COUNT(DISTINCT DW_Customer_ID) 
+    FROM Snapshot_Customers_Transactions_Arch A JOIN DWH_Dim_Customers C 
+    ON A.Customer_ID=C.Customer_ID
+    WHERE (YEAR(StartOfMonth),QUARTER(StartOfMonth),MONTH(StartOfMonth),C.Country, C.City) 
+    NOT IN (select distinct Year,Quarter,month,Country, City FROM DWH_Snapshot_Customers_Transactions)
+    GROUP BY 
+        YEAR(StartOfMonth),
+        QUARTER(StartOfMonth),
+        MONTH(StartOfMonth),
+        C.Country, 
+        C.City;
+-- ELSE
+--     RAISE NOTICE 'No records found for archiving.';
+-- END IF;
+-- END $$;
+[2024-03-27T12:41:59.019+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-27T12:41:59.029+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-03-27T12:41:59.045+0000] {sql.py:457} INFO - Running statement: 
+CREATE OR REPLACE VIEW current_dates AS 
+SELECT 
+(DATE_TRUNC('MONTH', CURRENT_DATE) - INTERVAL '1 MONTH')::DATE AS StartOfPrevMonth,
+(DATE_TRUNC('MONTH', CURRENT_DATE) - INTERVAL '1 DAY')::DATE AS EndOfPrevMonth,
+EXTRACT(MONTH FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodMonth,
+EXTRACT(YEAR FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodYear,
+EXTRACT(QUARTER FROM DATE_TRUNC('month', (SELECT DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 day'))) AS PrevPeriodQuarter;
+
+    CREATE OR REPLACE VIEW Snapshot_Customers_Transactions_month AS
+    SELECT DISTINCT 
+        cd.StartOfPrevMonth,
+        c.Customer_ID,
+        CASE 
+            WHEN EXISTS (
+                SELECT 1
+                FROM DWH_Dim_Customers u
+                WHERE u.Customer_ID = c.Customer_ID
+                GROUP BY u.Customer_ID
+                HAVING MIN(EXTRACT(MONTH FROM valid_from)) = cd.PrevPeriodMonth
+                AND MIN(EXTRACT(YEAR FROM valid_from)) = cd.PrevPeriodYear
+            ) THEN 'new'
+            WHEN NOT EXISTS (
+                SELECT 1
+                FROM DWH_Dim_Customers t join DWH_Fact_Product_In_Order p
+                ON p.DW_Customer_ID =t.DW_Customer_ID
+                WHERE t.Customer_ID = c.Customer_ID 
+                AND DATE(Order_Time) <= EndOfPrevMonth
+                AND DATE(Order_Time) >= StartOfPrevMonth - INTERVAL '2 month'
+            ) THEN 'abandoned'
+            WHEN EXISTS (
+                SELECT 1
+                FROM Snapshot_Customers_Transactions_Arch s
+                WHERE s.Customer_ID = c.Customer_ID 
+                AND s.StartOfMonth = DATE(cd.StartOfPrevMonth) - INTERVAL '1 month'
+                AND status ='abandoned' 
+            ) 
+             AND EXISTS (
+                SELECT 1
+                FROM DWH_Dim_Customers t join DWH_Fact_Product_In_Order p
+                ON p.DW_Customer_ID = t.DW_Customer_ID
+                WHERE t.Customer_ID = c.Customer_ID 
+                AND DATE(Order_Time) <= cd.EndOfPrevMonth
+                AND DATE(Order_Time) >= cd.StartOfPrevMonth
+            ) THEN 'reactivated' 
+            ELSE 'regular' 
+        END AS Status
+    FROM DWH_Dim_Customers c 
+    CROSS JOIN current_dates cd; 
+        --cross join beacuse the view consists of one record   
+   
+
+--   DO $$
+-- BEGIN   -- Loading to archive table and snapshot table only the previous month and load once only
+-- IF (SELECT MAX(StartOfMonth) FROM Snapshot_Customers_Transactions_Arch) <
+--    (SELECT StartOfPrevMonth FROM current_dates) 
+
+-- THEN
+        -- Adding the new records to the archive table - incremental loading
+    INSERT INTO Snapshot_Customers_Transactions_Arch (Customer_ID, StartOfMonth, Status)
+    SELECT 
+        Customer_ID,
+        StartOfPrevMonth,
+        Status 
+    FROM Snapshot_Customers_Transactions_month t
+    WHERE (Customer_ID,StartOfPrevMonth,Status) NOT IN (SELECT Customer_ID,StartOfPrevMonth,Status FROM Snapshot_Customers_Transactions_Arch);
+    
+    
+    INSERT INTO DWH_Snapshot_Customers_Transactions (Year, Quarter, Month, Country, City, Count_New_Customers,
+                                                     Count_Regular, Count_Reactivated, Count_Abandons, Count_Total)
+    SELECT 
+        YEAR(StartOfMonth),
+        QUARTER(StartOfMonth),
+        MONTH(StartOfMonth),
+        C.Country, 
+        C.City,
+        SUM(CASE WHEN A.Status='new' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN A.Status='regular' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN A.Status='reactivated' THEN 1 ELSE 0 END),
+        SUM(CASE WHEN A.Status='abandoned' THEN 1 ELSE 0 END),
+        COUNT(DISTINCT DW_Customer_ID) 
+    FROM Snapshot_Customers_Transactions_Arch A JOIN DWH_Dim_Customers C 
+    ON A.Customer_ID=C.Customer_ID
+    WHERE (YEAR(StartOfMonth),QUARTER(StartOfMonth),MONTH(StartOfMonth),C.Country, C.City) 
+    NOT IN (select distinct Year,Quarter,month,Country, City FROM DWH_Snapshot_Customers_Transactions)
+    GROUP BY 
+        YEAR(StartOfMonth),
+        QUARTER(StartOfMonth),
+        MONTH(StartOfMonth),
+        C.Country, 
+        C.City;
+-- ELSE
+--     RAISE NOTICE 'No records found for archiving.';
+-- END IF;
+-- END $$;, parameters: None
+[2024-03-27T12:41:59.064+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UndefinedFunction: function year(date) does not exist
+LINE 72:         YEAR(StartOfMonth),
+                 ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+
+[2024-03-27T12:41:59.076+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=snapshot, execution_date=20240326T190911, start_date=20240327T124158, end_date=20240327T124159
+[2024-03-27T12:41:59.092+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 2313 for task snapshot (function year(date) does not exist
+LINE 72:         YEAR(StartOfMonth),
+                 ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+; 5309)
+[2024-03-27T12:41:59.128+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-03-27T12:41:59.149+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

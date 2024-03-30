@@ -14,4 +14,7 @@ join STG_Fact_Details d on o.Order_ID=d.Order_ID
 join DWH_Dim_Customers c on o.Customer_ID=c.Customer_ID
 join DWH_Dim_Employees e on o.Employee_ID=e.Employee_ID
 join DWH_Dim_Products p on d.Product_ID=p.Product_ID
-where p.Valid_Until is not null and e.Valid_Until is not null and c.Valid_Until is not null 
+where p.Valid_Until is null and e.Valid_Until is null and c.Valid_Until is null 
+and (o.Order_ID,p.DW_Prdocut_ID) not in ( select distinct Order_ID, DW_Prdocut_ID
+                                          from DWH_Fact_Product_In_Order
+                                        )

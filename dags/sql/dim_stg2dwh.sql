@@ -1,5 +1,5 @@
-truncate table STG_Dim_Dates;
-truncate table STG_Dim_Time;
+truncate table DWH_Dim_Dates;
+truncate table DWH_Dim_Time;
 
 insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
 select * 
@@ -13,7 +13,7 @@ from STG_Dim_Time;
 --insert all the new customers records 
 insert into DWH_Dim_Customers (Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
 select *
-from STG_Dim_Customers c
+from STG_Dim_Customers  
 where Customer_ID not in (
                           select distinct Customer_ID
                           from DWH_Dim_Customers
@@ -43,7 +43,7 @@ where s.City <> d.City or s.Country <> d.Country;
 -- insert all the new products records 
 insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
 select *
-from STG_Dim_Products 
+from STG_Dim_Products s 
 where Product_ID not in 
                             (
                               select distinct Product_ID

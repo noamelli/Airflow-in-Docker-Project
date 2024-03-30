@@ -25,12 +25,15 @@ case
 case when Customer_ID similar to '[0-9]+' then cast(Customer_ID as int) else 0 end,
 case when Employee_ID similar to '[0-9]+' then cast(Employee_ID as int) else 0 end,
 case when Shipper_ID similar to '[0-9]+' then cast(Shipper_ID as int) else 0 end
-from MRR_Fact_Orders;
+from MRR_Fact_Orders
+where isValid='valid';
+
 
 
 insert into STG_Fact_Details (Order_ID,Product_ID,Quantity)
 select 
 cast(Order_ID as integer),
 cast(Product_ID as integer),
-case when Quantity similar to '[0-9]+' and cast(Quantity as int) >0 then cast(Quantity as int) else null end
-from MRR_Fact_Details;
+case when Quantity similar to '[0-9]+' and cast(Quantity as int) >= 0 then cast(Quantity as int) else null end
+from MRR_Fact_Details
+where isValid='valid';
