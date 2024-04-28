@@ -1,0 +1,515 @@
+[2024-04-25T14:27:44.631+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.create_tables scheduled__2024-03-29T21:11:00+00:00 [queued]>
+[2024-04-25T14:27:44.945+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.create_tables scheduled__2024-03-29T21:11:00+00:00 [queued]>
+[2024-04-25T14:27:44.949+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-04-25T14:28:32.045+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): create_tables> on 2024-03-29 21:11:00+00:00
+[2024-04-25T14:28:32.110+0000] {standard_task_runner.py:60} INFO - Started process 115 to run task
+[2024-04-25T14:28:32.154+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'create_tables', 'scheduled__2024-03-29T21:11:00+00:00', '--job-id', '2512', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmphdd6_m2q']
+[2024-04-25T14:28:32.241+0000] {standard_task_runner.py:88} INFO - Job 2512: Subtask create_tables
+[2024-04-25T14:28:35.301+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.create_tables scheduled__2024-03-29T21:11:00+00:00 [running]> on host d838c4eb4dcc
+[2024-04-25T14:28:38.420+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='create_tables' AIRFLOW_CTX_EXECUTION_DATE='2024-03-29T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-29T21:11:00+00:00'
+[2024-04-25T14:28:38.473+0000] {sql.py:276} INFO - Executing: CREATE TABLE IF NOT EXISTS MRR_Dim_Customers(
+user_ID             varchar(50) null,
+country             varchar(50) null,
+currency            varchar(50) null,
+exchange_to_usd     varchar(50) null,
+installation_date   varchar(50) null,
+last_seen           varchar(50) null,
+media_source        varchar(50) null,
+isValid             varchar(50) not null
+);
+
+
+CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
+product_ID          varchar(50) null,
+product_name        varchar(50) null,
+supplier            varchar(50) null,
+category            varchar(50) null,
+unit_price          varchar(50) null,
+unit_cost           varchar(50) null,
+isValid             varchar(50) not null
+);
+
+
+CREATE TABLE IF NOT EXISTS  MRR_Fact_Details(
+order_ID            varchar(50) null,
+product_ID          varchar(50) null,
+quantity            varchar(50) null
+);
+
+CREATE TABLE IF NOT EXISTS  MRR_Fact_Orders(
+order_ID            varchar(50) null,
+order_time          varchar(50) null,
+customer_ID         varchar(50) null,
+coupon_discount     varchar(50) null
+);
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
+user_ID	            int	        not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_usd	    decimal(3,2) not null,
+installation_date	date	    not null,
+last_seen 	        date	    not null,
+media_source	    varchar(50)	not null,
+isValid	            varchar(50)	not null,
+PRIMARY KEY (user_ID)
+);
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Dates(
+date	date	not null,
+year	Int	    not null,
+quarter	int	    not null,
+month	int	    not null,
+day	    int	    not null,
+PRIMARY KEY (date)
+);
+
+CREATE TABLE IF NOT EXISTS STG_Dim_Products(
+product_ID	    int	not         null,
+product_name	varchar(50)	    not null,
+supplier	    int	            not null,
+category	    int	            not null,
+unit_price	    decimal(15,5)	null,
+unit_cost	    decimal(15,5)	null,
+isValid	        varchar(10)	    not null,
+PRIMARY KEY (product_ID)
+);
+
+CREATE TABLE IF NOT EXISTS STG_Dim_Time(
+dateTime	timestamp	not null,
+date	    date	    not null,
+hour	    Time	    not null,
+PRIMARY KEY (DateTime )
+);
+
+
+CREATE TABLE IF NOT EXISTS  STG_Fact_Details(
+order_ID	int	not null,
+product_ID	int	not null,
+quantity	int	not null,
+PRIMARY KEY (order_ID, product_ID )
+);
+
+CREATE TABLE IF NOT EXISTS  STG_Fact_Orders(
+order_ID	    int	        not null,
+order_time	    timestamp   not null,
+customer_ID	    int	        not null,
+coupon_discount	decimal(3,2) not null,
+PRIMARY KEY (order_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Customers(
+DW_customer_ID	    serial	    not null,
+user_ID	            int	        not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_usd	    decimal(3,2) not null,
+installation_date	date	    not null,
+last_seen 	        date	    not null,
+media_source	    varchar(50)	not null,
+valid_from      	date	    null,
+valid_until	        date	    null,
+PRIMARY KEY (DW_customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS  DWH_Dim_Dates(
+date	date	not null,
+year	int	    not null,
+quarter	int	    not null,
+month	int	    not null,
+day	    int	    not null,
+PRIMARY KEY (date)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Products(
+DW_prdocut_ID	serial	    not null,
+product_ID	    int	        not null,
+product_name	varchar(50)	not null,
+supplier	    int	        not null,
+category	    int	        not null,
+unit_price	    decimal(15,5)	null,
+unit_cost	    decimal(15,5)	null,
+valid_from 	    date	        null,
+valid_until	    date	        null,
+PRIMARY KEY (DW_prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order(
+order_ID	            int	not null,
+DW_product_ID	        int	not null,
+DW_customer_ID	        int	not null,
+order_time	            timestamp	not null,
+quantity	            int	null,
+total_price 	        decimal(15,5)	not null,
+total_cost	            decimal(15,5)	not null,
+incremental_discount    decimal(3,2)	not null,
+final_price	            decimal(15,5)	not null,
+PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Time(
+dateTime	timestamp	not null,
+date	    date	    not null,
+hour	    Time	    not null,
+PRIMARY KEY (dateTime )
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions_Arch(
+DW_customer_ID  int         not null,
+customer_ID     int         not null,
+startOfMonth    date        not null,
+status          varchar(10) not null,
+PRIMARY KEY (DW_customer_ID, startOfMonth)
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions(
+year	            int	        not null,
+quarter	            int	        not null,
+month	            int	        not null,
+country	            varchar(50)	not null,
+count_new_customers	int	        not null,
+count_regular	    int	        not null,
+count_reactivated	int	        not null,
+count_abandons	    int	        not null,
+count_total	        int	        not null,
+PRIMARY KEY (year, quarter, month, country)
+);
+
+--backup
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Customers_backup(
+DW_customer_ID	    serial	    not null,
+user_ID	            int	        not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_usd	    decimal(3,2) not null,
+installation_date	date	    not null,
+last_seen 	        date	    not null,
+media_source	    varchar(50)	not null,
+valid_from      	date	    null,
+valid_until	        date	    null,
+PRIMARY KEY (DW_customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Products_backup(
+DW_prdocut_ID	serial	    not null,
+product_ID	    int	        not null,
+product_name	varchar(50)	not null,
+supplier	    int	        not null,
+category	    int	        not null,
+unit_price	    decimal(15,5)	null,
+unit_cost	    decimal(15,5)	null,
+valid_from 	    date	        null,
+valid_until	    date	        null,
+PRIMARY KEY (DW_prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order_backup(
+order_ID	            int	not null,
+DW_product_ID	        int	not null,
+DW_customer_ID	        int	not null,
+order_time	            timestamp	not null,
+quantity	            int	null,
+total_price 	        decimal(15,5)	not null,
+total_cost	            decimal(15,5)	not null,
+incremental_discount    decimal(3,2)	not null,
+final_price	            decimal(15,5)	not null,
+PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+);
+
+
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions_Arch_backup(
+DW_customer_ID  int         not null,
+customer_ID     int         not null,
+startOfMonth    date        not null,
+status          varchar(10) not null,
+PRIMARY KEY (DW_customer_ID, startOfMonth)
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions_backup(
+year	            int	        not null,
+quarter	            int	        not null,
+month	            int	        not null,
+country	            varchar(50)	not null,
+count_new_customers	int	        not null,
+count_regular	    int	        not null,
+count_reactivated	int	        not null,
+count_abandons	    int	        not null,
+count_total	        int	        not null,
+PRIMARY KEY (year, quarter, month, country)
+);
+
+[2024-04-25T14:28:38.591+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-25T14:28:38.805+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-25T14:28:39.533+0000] {sql.py:457} INFO - Running statement: CREATE TABLE IF NOT EXISTS MRR_Dim_Customers(
+user_ID             varchar(50) null,
+country             varchar(50) null,
+currency            varchar(50) null,
+exchange_to_usd     varchar(50) null,
+installation_date   varchar(50) null,
+last_seen           varchar(50) null,
+media_source        varchar(50) null,
+isValid             varchar(50) not null
+);
+
+
+CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
+product_ID          varchar(50) null,
+product_name        varchar(50) null,
+supplier            varchar(50) null,
+category            varchar(50) null,
+unit_price          varchar(50) null,
+unit_cost           varchar(50) null,
+isValid             varchar(50) not null
+);
+
+
+CREATE TABLE IF NOT EXISTS  MRR_Fact_Details(
+order_ID            varchar(50) null,
+product_ID          varchar(50) null,
+quantity            varchar(50) null
+);
+
+CREATE TABLE IF NOT EXISTS  MRR_Fact_Orders(
+order_ID            varchar(50) null,
+order_time          varchar(50) null,
+customer_ID         varchar(50) null,
+coupon_discount     varchar(50) null
+);
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
+user_ID	            int	        not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_usd	    decimal(3,2) not null,
+installation_date	date	    not null,
+last_seen 	        date	    not null,
+media_source	    varchar(50)	not null,
+isValid	            varchar(50)	not null,
+PRIMARY KEY (user_ID)
+);
+
+CREATE TABLE IF NOT EXISTS  STG_Dim_Dates(
+date	date	not null,
+year	Int	    not null,
+quarter	int	    not null,
+month	int	    not null,
+day	    int	    not null,
+PRIMARY KEY (date)
+);
+
+CREATE TABLE IF NOT EXISTS STG_Dim_Products(
+product_ID	    int	not         null,
+product_name	varchar(50)	    not null,
+supplier	    int	            not null,
+category	    int	            not null,
+unit_price	    decimal(15,5)	null,
+unit_cost	    decimal(15,5)	null,
+isValid	        varchar(10)	    not null,
+PRIMARY KEY (product_ID)
+);
+
+CREATE TABLE IF NOT EXISTS STG_Dim_Time(
+dateTime	timestamp	not null,
+date	    date	    not null,
+hour	    Time	    not null,
+PRIMARY KEY (DateTime )
+);
+
+
+CREATE TABLE IF NOT EXISTS  STG_Fact_Details(
+order_ID	int	not null,
+product_ID	int	not null,
+quantity	int	not null,
+PRIMARY KEY (order_ID, product_ID )
+);
+
+CREATE TABLE IF NOT EXISTS  STG_Fact_Orders(
+order_ID	    int	        not null,
+order_time	    timestamp   not null,
+customer_ID	    int	        not null,
+coupon_discount	decimal(3,2) not null,
+PRIMARY KEY (order_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Customers(
+DW_customer_ID	    serial	    not null,
+user_ID	            int	        not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_usd	    decimal(3,2) not null,
+installation_date	date	    not null,
+last_seen 	        date	    not null,
+media_source	    varchar(50)	not null,
+valid_from      	date	    null,
+valid_until	        date	    null,
+PRIMARY KEY (DW_customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS  DWH_Dim_Dates(
+date	date	not null,
+year	int	    not null,
+quarter	int	    not null,
+month	int	    not null,
+day	    int	    not null,
+PRIMARY KEY (date)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Products(
+DW_prdocut_ID	serial	    not null,
+product_ID	    int	        not null,
+product_name	varchar(50)	not null,
+supplier	    int	        not null,
+category	    int	        not null,
+unit_price	    decimal(15,5)	null,
+unit_cost	    decimal(15,5)	null,
+valid_from 	    date	        null,
+valid_until	    date	        null,
+PRIMARY KEY (DW_prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order(
+order_ID	            int	not null,
+DW_product_ID	        int	not null,
+DW_customer_ID	        int	not null,
+order_time	            timestamp	not null,
+quantity	            int	null,
+total_price 	        decimal(15,5)	not null,
+total_cost	            decimal(15,5)	not null,
+incremental_discount    decimal(3,2)	not null,
+final_price	            decimal(15,5)	not null,
+PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Time(
+dateTime	timestamp	not null,
+date	    date	    not null,
+hour	    Time	    not null,
+PRIMARY KEY (dateTime )
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions_Arch(
+DW_customer_ID  int         not null,
+customer_ID     int         not null,
+startOfMonth    date        not null,
+status          varchar(10) not null,
+PRIMARY KEY (DW_customer_ID, startOfMonth)
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions(
+year	            int	        not null,
+quarter	            int	        not null,
+month	            int	        not null,
+country	            varchar(50)	not null,
+count_new_customers	int	        not null,
+count_regular	    int	        not null,
+count_reactivated	int	        not null,
+count_abandons	    int	        not null,
+count_total	        int	        not null,
+PRIMARY KEY (year, quarter, month, country)
+);
+
+--backup
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Customers_backup(
+DW_customer_ID	    serial	    not null,
+user_ID	            int	        not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_usd	    decimal(3,2) not null,
+installation_date	date	    not null,
+last_seen 	        date	    not null,
+media_source	    varchar(50)	not null,
+valid_from      	date	    null,
+valid_until	        date	    null,
+PRIMARY KEY (DW_customer_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Dim_Products_backup(
+DW_prdocut_ID	serial	    not null,
+product_ID	    int	        not null,
+product_name	varchar(50)	not null,
+supplier	    int	        not null,
+category	    int	        not null,
+unit_price	    decimal(15,5)	null,
+unit_cost	    decimal(15,5)	null,
+valid_from 	    date	        null,
+valid_until	    date	        null,
+PRIMARY KEY (DW_prdocut_ID)
+);
+
+
+CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order_backup(
+order_ID	            int	not null,
+DW_product_ID	        int	not null,
+DW_customer_ID	        int	not null,
+order_time	            timestamp	not null,
+quantity	            int	null,
+total_price 	        decimal(15,5)	not null,
+total_cost	            decimal(15,5)	not null,
+incremental_discount    decimal(3,2)	not null,
+final_price	            decimal(15,5)	not null,
+PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+);
+
+
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions_Arch_backup(
+DW_customer_ID  int         not null,
+customer_ID     int         not null,
+startOfMonth    date        not null,
+status          varchar(10) not null,
+PRIMARY KEY (DW_customer_ID, startOfMonth)
+);
+
+CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions_backup(
+year	            int	        not null,
+quarter	            int	        not null,
+month	            int	        not null,
+country	            varchar(50)	not null,
+count_new_customers	int	        not null,
+count_regular	    int	        not null,
+count_reactivated	int	        not null,
+count_abandons	    int	        not null,
+count_total	        int	        not null,
+PRIMARY KEY (year, quarter, month, country)
+);
+, parameters: None
+[2024-04-25T14:28:40.434+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "pg_type_typname_nsp_index"
+DETAIL:  Key (typname, typnamespace)=(dwh_snapshot_customers_transactions_arch, 2200) already exists.
+
+[2024-04-25T14:28:40.589+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=create_tables, execution_date=20240329T211100, start_date=20240425T142744, end_date=20240425T142840
+[2024-04-25T14:28:40.800+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 2512 for task create_tables (duplicate key value violates unique constraint "pg_type_typname_nsp_index"
+DETAIL:  Key (typname, typnamespace)=(dwh_snapshot_customers_transactions_arch, 2200) already exists.
+; 115)
+[2024-04-25T14:28:40.946+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-04-25T14:28:41.054+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-04-25T14:28:41.321+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

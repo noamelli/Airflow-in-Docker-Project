@@ -1,0 +1,175 @@
+[2024-04-25T14:34:31.814+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-03-29T21:11:00+00:00 [queued]>
+[2024-04-25T14:34:31.857+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-03-29T21:11:00+00:00 [queued]>
+[2024-04-25T14:34:31.859+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-04-25T14:34:31.940+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dim_mrr2stg> on 2024-03-29 21:11:00+00:00
+[2024-04-25T14:34:31.964+0000] {standard_task_runner.py:60} INFO - Started process 301 to run task
+[2024-04-25T14:34:31.982+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dim_mrr2stg', 'scheduled__2024-03-29T21:11:00+00:00', '--job-id', '2546', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpj4k3_oim']
+[2024-04-25T14:34:31.997+0000] {standard_task_runner.py:88} INFO - Job 2546: Subtask dim_mrr2stg
+[2024-04-25T14:34:32.209+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-03-29T21:11:00+00:00 [running]> on host d838c4eb4dcc
+[2024-04-25T14:34:33.080+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dim_mrr2stg' AIRFLOW_CTX_EXECUTION_DATE='2024-03-29T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-29T21:11:00+00:00'
+[2024-04-25T14:34:33.083+0000] {sql.py:276} INFO - Executing: insert into STG_Dim_Products(Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select 
+cast(Product_ID as integer),
+case when Product_Name is null then 'missing' else Product_Name end,
+case when Supplier similar to '[0-9]+' then cast(Supplier as integer) else 0 end,
+case when Category similar to '[0-9]+' then cast(Category as integer) else 0 end,
+case when Unit_Price similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Price as decimal(15,5))>=0
+    then cast(Unit_Price as decimal(15,5)) else null end,
+case when Unit_Cost similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Cost as decimal(15,5))>=0
+    then cast(Unit_Cost as decimal(15,5)) else null end
+from MRR_Dim_Products
+where isValid='valid';
+
+insert into STG_Dim_Customers(Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
+select
+cast(Customer_ID as integer),
+case when Company_Name is null then 'missing' else Company_Name end,
+case when Contact_Name is null then 'missing' else Contact_Name end,
+case when Street is null then 'missing' else Street end,
+case when City is null then 'missing' else City end,
+case when Postal_Code is null then 'missing' else Postal_Code end,
+case when Country is null then 'missing' else Country end,
+case when Phone is null then 'missing' else Phone end,
+case when Fax is null then 'missing' else Fax end 
+from MRR_Dim_Customers
+where isValid='valid';
+
+insert into STG_Dim_Employees(Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)
+select 
+cast(Employee_ID as integer),
+case when Last_Name is null then 'missing' else Last_Name end,
+case when First_Name is null then 'missing' else First_Name end ,
+case when Title is null then 'missing' else Title end ,
+case
+    -- YYYY-MM-DD
+    when Hire_Date ~ '^\d{4}-\d{2}-\d{2}$' then to_date(Hire_Date, 'YYYY-MM-DD')
+    -- DD-MM-YYYY
+    when Hire_Date ~ '^\d{2}-\d{2}-\d{4}$' then to_date(Hire_Date, 'DD-MM-YYYY')
+    -- YYYY.MM.DD
+    when Hire_Date ~ '^\d{4}.\d{2}.\d{2}$' then to_date(Hire_Date, 'YYYY.MM.DD')
+    -- DD.MM.YYYY
+    when Hire_Date ~ '^\d{2}.\d{2}.\d{4}$' then to_date(Hire_Date, 'DD.MM.YYYY')
+    -- DD/MM/YYYY
+    when Hire_Date ~ '^\d{2}/\d{2}/\d{4}$' then to_date(Hire_Date, 'DD/MM/YYYY')
+    -- YYYY/MM/DD
+    when Hire_Date ~ '^\d{4}/\d{2}/\d{2}$' then to_date(Hire_Date, 'YYYY/MM/DD')
+    -- DD\MM\YYYY
+    when Hire_Date ~ '^\d{2}\\d{2}\\d{4}$' then to_date(Hire_Date, 'DD\MM\YYYY')
+    -- YYYY\MM\DD
+    when Hire_Date ~ '^\d{4}\\d{2}\\d{2}$' then to_date(Hire_Date, 'YYYY\MM\DD')
+    else '1900-01-01' end,  
+case when Office similar to '[0-9]+' then cast(Office as int) else 0 end,
+case when Reports_To similar to '[0-9]+' then cast(Reports_To as int) when Reports_To is null then null else 0 end,
+case when Month_Salary similar to '[0-9]+(\.[0-9]+)?' and cast(Month_Salary as decimal(15,5))>=0
+    then cast(Month_Salary as decimal(15,5)) else null end
+from MRR_Dim_Employees
+where isValid='valid';
+
+
+insert into STG_Dim_Dates(Date,Year,Quarter,Month,Day)
+select
+generate_series::date,
+extract(year from generate_series),
+extract(quarter from generate_series),
+extract(month from generate_series),
+extract(day from generate_series)
+from generate_series('2018-01-01'::date, CURRENT_DATE::date, '1 day');
+
+
+insert into STG_Dim_Time(DateTime, Date, Hour)
+SELECT
+  generate_series::TIMESTAMP,
+  DATE_TRUNC('hour', generate_series::TIMESTAMP),
+  EXTRACT(HOUR FROM generate_series::TIMESTAMP) AS hour
+FROM
+  GENERATE_SERIES('2018-01-01'::TIMESTAMP, CURRENT_DATE::TIMESTAMP, '1 hour');
+
+[2024-04-25T14:34:33.114+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-25T14:34:33.136+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-25T14:34:33.184+0000] {sql.py:457} INFO - Running statement: insert into STG_Dim_Products(Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select 
+cast(Product_ID as integer),
+case when Product_Name is null then 'missing' else Product_Name end,
+case when Supplier similar to '[0-9]+' then cast(Supplier as integer) else 0 end,
+case when Category similar to '[0-9]+' then cast(Category as integer) else 0 end,
+case when Unit_Price similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Price as decimal(15,5))>=0
+    then cast(Unit_Price as decimal(15,5)) else null end,
+case when Unit_Cost similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Cost as decimal(15,5))>=0
+    then cast(Unit_Cost as decimal(15,5)) else null end
+from MRR_Dim_Products
+where isValid='valid';
+
+insert into STG_Dim_Customers(Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
+select
+cast(Customer_ID as integer),
+case when Company_Name is null then 'missing' else Company_Name end,
+case when Contact_Name is null then 'missing' else Contact_Name end,
+case when Street is null then 'missing' else Street end,
+case when City is null then 'missing' else City end,
+case when Postal_Code is null then 'missing' else Postal_Code end,
+case when Country is null then 'missing' else Country end,
+case when Phone is null then 'missing' else Phone end,
+case when Fax is null then 'missing' else Fax end 
+from MRR_Dim_Customers
+where isValid='valid';
+
+insert into STG_Dim_Employees(Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)
+select 
+cast(Employee_ID as integer),
+case when Last_Name is null then 'missing' else Last_Name end,
+case when First_Name is null then 'missing' else First_Name end ,
+case when Title is null then 'missing' else Title end ,
+case
+    -- YYYY-MM-DD
+    when Hire_Date ~ '^\d{4}-\d{2}-\d{2}$' then to_date(Hire_Date, 'YYYY-MM-DD')
+    -- DD-MM-YYYY
+    when Hire_Date ~ '^\d{2}-\d{2}-\d{4}$' then to_date(Hire_Date, 'DD-MM-YYYY')
+    -- YYYY.MM.DD
+    when Hire_Date ~ '^\d{4}.\d{2}.\d{2}$' then to_date(Hire_Date, 'YYYY.MM.DD')
+    -- DD.MM.YYYY
+    when Hire_Date ~ '^\d{2}.\d{2}.\d{4}$' then to_date(Hire_Date, 'DD.MM.YYYY')
+    -- DD/MM/YYYY
+    when Hire_Date ~ '^\d{2}/\d{2}/\d{4}$' then to_date(Hire_Date, 'DD/MM/YYYY')
+    -- YYYY/MM/DD
+    when Hire_Date ~ '^\d{4}/\d{2}/\d{2}$' then to_date(Hire_Date, 'YYYY/MM/DD')
+    -- DD\MM\YYYY
+    when Hire_Date ~ '^\d{2}\\d{2}\\d{4}$' then to_date(Hire_Date, 'DD\MM\YYYY')
+    -- YYYY\MM\DD
+    when Hire_Date ~ '^\d{4}\\d{2}\\d{2}$' then to_date(Hire_Date, 'YYYY\MM\DD')
+    else '1900-01-01' end,  
+case when Office similar to '[0-9]+' then cast(Office as int) else 0 end,
+case when Reports_To similar to '[0-9]+' then cast(Reports_To as int) when Reports_To is null then null else 0 end,
+case when Month_Salary similar to '[0-9]+(\.[0-9]+)?' and cast(Month_Salary as decimal(15,5))>=0
+    then cast(Month_Salary as decimal(15,5)) else null end
+from MRR_Dim_Employees
+where isValid='valid';
+
+
+insert into STG_Dim_Dates(Date,Year,Quarter,Month,Day)
+select
+generate_series::date,
+extract(year from generate_series),
+extract(quarter from generate_series),
+extract(month from generate_series),
+extract(day from generate_series)
+from generate_series('2018-01-01'::date, CURRENT_DATE::date, '1 day');
+
+
+insert into STG_Dim_Time(DateTime, Date, Hour)
+SELECT
+  generate_series::TIMESTAMP,
+  DATE_TRUNC('hour', generate_series::TIMESTAMP),
+  EXTRACT(HOUR FROM generate_series::TIMESTAMP) AS hour
+FROM
+  GENERATE_SERIES('2018-01-01'::TIMESTAMP, CURRENT_DATE::TIMESTAMP, '1 hour');
+, parameters: None
+[2024-04-25T14:34:33.966+0000] {sql.py:466} INFO - Rows affected: 55345
+[2024-04-25T14:34:33.969+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/providers/common/sql/hooks/sql.py:407: AirflowProviderDeprecationWarning: Call to deprecated method _make_common_data_structure. (The `_make_serializable` method is deprecated and support will be removed in a future version of the common.sql provider. Please update the DbApiHook's provider to a version based on common.sql >= 1.9.1.)
+  result = self._make_common_data_structure(handler(cur))
+
+[2024-04-25T14:34:34.032+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=dim_mrr2stg, execution_date=20240329T211100, start_date=20240425T143431, end_date=20240425T143434
+[2024-04-25T14:34:34.138+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-04-25T14:34:34.179+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-04-25T14:34:34.273+0000] {taskinstance.py:3309} INFO - 1 downstream tasks scheduled from follow-on schedule check

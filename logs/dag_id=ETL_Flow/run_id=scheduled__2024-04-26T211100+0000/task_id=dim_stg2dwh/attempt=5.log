@@ -1,0 +1,177 @@
+[2024-04-28T06:40:01.076+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-04-26T21:11:00+00:00 [queued]>
+[2024-04-28T06:40:01.097+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-04-26T21:11:00+00:00 [queued]>
+[2024-04-28T06:40:01.099+0000] {taskinstance.py:2193} INFO - Starting attempt 5 of 10
+[2024-04-28T06:40:01.131+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dim_stg2dwh> on 2024-04-26 21:11:00+00:00
+[2024-04-28T06:40:01.140+0000] {standard_task_runner.py:60} INFO - Started process 406 to run task
+[2024-04-28T06:40:01.147+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dim_stg2dwh', 'scheduled__2024-04-26T21:11:00+00:00', '--job-id', '2888', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpwjdislxy']
+[2024-04-28T06:40:01.152+0000] {standard_task_runner.py:88} INFO - Job 2888: Subtask dim_stg2dwh
+[2024-04-28T06:40:01.246+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-04-26T21:11:00+00:00 [running]> on host d838c4eb4dcc
+[2024-04-28T06:40:01.722+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dim_stg2dwh' AIRFLOW_CTX_EXECUTION_DATE='2024-04-26T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='5' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-04-26T21:11:00+00:00'
+[2024-04-28T06:40:01.724+0000] {sql.py:276} INFO - Executing: truncate table DWH_Dim_Dates;
+truncate table DWH_Dim_Time;
+
+insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates;
+
+insert into DWH_Dim_Time (DateTime,Date,Hour)
+select * 
+from STG_Dim_Time;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select Customer_ID,country,currency,exchange_to_USD,installation_date,media_source
+from STG_Dim_Customers  
+where Customer_ID not in (
+                          select distinct Customer_ID
+                          from DWH_Dim_Customers
+                          );
+
+
+
+--update the valid until date of customers who moved to another country/their currency has changed 
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another country/their currency has changed                            
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select s.Customer_ID,s.country,s.currency,s.exchange_to_USD,s.installation_date,s.media_source
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD;
+
+--products
+
+-- insert all the new products records 
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost
+from STG_Dim_Products s 
+where Product_ID not in 
+                            (
+                              select distinct Product_ID
+                              from DWH_Dim_Products       
+                            );
+-- update the valid until date of products that their price/cost/supplier have changed
+update DWH_Dim_Products
+set Valid_Until=current_date
+where DW_Prdocut_ID in (
+                            select DW_Prdocut_ID 
+                            from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+                            where (s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier) 
+                            and d.Valid_Until is null
+                          );
+
+
+
+-- insert records of products that their price/cost/supplier have changed                             
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select s.Product_ID,s.Product_Name,s.Supplier,s.Category,s.Unit_Price,s.Unit_Cost
+from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier;
+
+[2024-04-28T06:40:01.744+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-28T06:40:01.759+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-28T06:40:01.786+0000] {sql.py:457} INFO - Running statement: truncate table DWH_Dim_Dates;
+truncate table DWH_Dim_Time;
+
+insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates;
+
+insert into DWH_Dim_Time (DateTime,Date,Hour)
+select * 
+from STG_Dim_Time;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select Customer_ID,country,currency,exchange_to_USD,installation_date,media_source
+from STG_Dim_Customers  
+where Customer_ID not in (
+                          select distinct Customer_ID
+                          from DWH_Dim_Customers
+                          );
+
+
+
+--update the valid until date of customers who moved to another country/their currency has changed 
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another country/their currency has changed                            
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select s.Customer_ID,s.country,s.currency,s.exchange_to_USD,s.installation_date,s.media_source
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD;
+
+--products
+
+-- insert all the new products records 
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost
+from STG_Dim_Products s 
+where Product_ID not in 
+                            (
+                              select distinct Product_ID
+                              from DWH_Dim_Products       
+                            );
+-- update the valid until date of products that their price/cost/supplier have changed
+update DWH_Dim_Products
+set Valid_Until=current_date
+where DW_Prdocut_ID in (
+                            select DW_Prdocut_ID 
+                            from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+                            where (s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier) 
+                            and d.Valid_Until is null
+                          );
+
+
+
+-- insert records of products that their price/cost/supplier have changed                             
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select s.Product_ID,s.Product_Name,s.Supplier,s.Category,s.Unit_Price,s.Unit_Cost
+from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier;
+, parameters: None
+[2024-04-28T06:40:01.843+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UndefinedColumn: column "dw_prdocut_id" does not exist
+LINE 56:                             select DW_Prdocut_ID 
+                                            ^
+HINT:  Perhaps you meant to reference the column "d.dw_product_id" or the column "dwh_dim_products.dw_product_id".
+
+[2024-04-28T06:40:01.877+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=dim_stg2dwh, execution_date=20240426T211100, start_date=20240428T064001, end_date=20240428T064001
+[2024-04-28T06:40:01.919+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 2888 for task dim_stg2dwh (column "dw_prdocut_id" does not exist
+LINE 56:                             select DW_Prdocut_ID 
+                                            ^
+HINT:  Perhaps you meant to reference the column "d.dw_product_id" or the column "dwh_dim_products.dw_product_id".
+; 406)
+[2024-04-28T06:40:02.004+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-04-28T06:40:02.031+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-04-28T06:40:02.073+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

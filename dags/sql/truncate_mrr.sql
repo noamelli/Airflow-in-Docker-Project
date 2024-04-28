@@ -1,0 +1,7 @@
+TRUNCATE TABLE MRR_Dim_Customers;
+TRUNCATE TABLE MRR_Dim_Products;
+TRUNCATE TABLE MRR_Fact_Details;
+TRUNCATE TABLE MRR_Fact_Orders;
+TRUNCATE TABLE MRR_Fact_Events;
+
+

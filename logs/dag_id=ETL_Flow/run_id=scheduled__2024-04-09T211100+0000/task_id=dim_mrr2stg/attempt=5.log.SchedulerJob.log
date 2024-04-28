@@ -1,0 +1,1 @@
+[2024-04-25T15:37:34.429+0000] {scheduler_job_runner.py:781} ERROR - Executor reports task instance <TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-04-09T21:11:00+00:00 [queued]> finished (success) although the task says it's queued. (Info: None) Was the task killed externally?

@@ -1,0 +1,157 @@
+[2024-04-28T07:32:48.950+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-04-26T21:11:00+00:00 [queued]>
+[2024-04-28T07:32:48.968+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-04-26T21:11:00+00:00 [queued]>
+[2024-04-28T07:32:48.970+0000] {taskinstance.py:2193} INFO - Starting attempt 8 of 13
+[2024-04-28T07:32:49.009+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dim_mrr2stg> on 2024-04-26 21:11:00+00:00
+[2024-04-28T07:32:49.019+0000] {standard_task_runner.py:60} INFO - Started process 1278 to run task
+[2024-04-28T07:32:49.027+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dim_mrr2stg', 'scheduled__2024-04-26T21:11:00+00:00', '--job-id', '2955', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmp5vzcphiy']
+[2024-04-28T07:32:49.033+0000] {standard_task_runner.py:88} INFO - Job 2955: Subtask dim_mrr2stg
+[2024-04-28T07:32:49.150+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-04-26T21:11:00+00:00 [running]> on host d838c4eb4dcc
+[2024-04-28T07:32:49.670+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dim_mrr2stg' AIRFLOW_CTX_EXECUTION_DATE='2024-04-26T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='8' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-04-26T21:11:00+00:00'
+[2024-04-28T07:32:49.673+0000] {sql.py:276} INFO - Executing: truncate table STG_Dim_Customers;
+truncate table STG_Dim_Products;
+truncate table STG_Dim_Dates;
+truncate table STG_Dim_Time;
+
+insert into STG_Dim_Products(Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,isValid)
+select 
+cast(Product_ID as integer),
+case when Product_Name is null then 'missing' else Product_Name end,
+case when Supplier similar to '[0-9]+' then cast(Supplier as integer) else 0 end,
+case when Category similar to '[0-9]+' then cast(Category as integer) else 0 end,
+case when Unit_Price similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Price as decimal(15,5))>=0
+     then cast(Unit_Price as decimal(15,5)) else null end,
+case when Unit_Cost similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Cost as decimal(15,5))>=0
+     then cast(Unit_Cost as decimal(15,5)) else null end,
+isValid
+from MRR_Dim_Products
+where isValid='valid';
+
+insert into STG_Dim_Customers(Customer_ID,country,currency,exchange_to_USD,installation_date,media_source,isValid)
+select
+cast(Customer_ID as integer),
+case when country is null then 'missing' else country end,
+case when currency is null then 'missing' else currency end,
+case when exchange_to_USD similar to '[0-9]+(\.[0-9]+)?' and cast(exchange_to_USD as decimal(3,2))>=0
+     then cast(exchange_to_USD as decimal(3,2)) else null end,
+case
+    -- YYYY-MM-DD
+    when installation_date ~ '^\d{4}-\d{2}-\d{2}$' then to_date(installation_date, 'YYYY-MM-DD')
+    -- DD-MM-YYYY
+    when installation_date ~ '^\d{2}-\d{2}-\d{4}$' then to_date(installation_date, 'DD-MM-YYYY')
+    -- YYYY.MM.DD
+    when installation_date ~ '^\d{4}.\d{2}.\d{2}$' then to_date(installation_date, 'YYYY.MM.DD')
+    -- DD.MM.YYYY
+    when installation_date ~ '^\d{2}.\d{2}.\d{4}$' then to_date(installation_date, 'DD.MM.YYYY')
+    -- DD/MM/YYYY
+    when installation_date ~ '^\d{2}/\d{2}/\d{4}$' then to_date(installation_date, 'DD/MM/YYYY')
+    -- YYYY/MM/DD
+    when installation_date ~ '^\d{4}/\d{2}/\d{2}$' then to_date(installation_date, 'YYYY/MM/DD')
+    -- DD\MM\YYYY
+    when installation_date ~ '^\d{2}\\d{2}\\d{4}$' then to_date(installation_date, 'DD\MM\YYYY')
+    -- YYYY\MM\DD
+    when installation_date ~ '^\d{4}\\d{2}\\d{2}$' then to_date(installation_date, 'YYYY\MM\DD')
+    else '1900-01-01' end,
+    media_source,
+    isValid 
+from MRR_Dim_Customers
+where isValid='valid';
+
+
+insert into STG_Dim_Dates(Date,Year,Quarter,Month,Day)
+select
+generate_series::date,
+extract(year from generate_series),
+extract(quarter from generate_series),
+extract(month from generate_series),
+extract(day from generate_series)
+from generate_series('2024-01-01'::date, CURRENT_DATE::date, '1 day');
+
+
+insert into STG_Dim_Time(DateTime, Date, Hour)
+SELECT
+  generate_series::TIMESTAMP,
+  DATE_TRUNC('hour', generate_series::TIMESTAMP),
+  EXTRACT(HOUR FROM generate_series::TIMESTAMP) AS hour
+FROM
+  GENERATE_SERIES('2024-01-01'::TIMESTAMP, CURRENT_DATE::TIMESTAMP, '1 hour');
+
+[2024-04-28T07:32:49.689+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-28T07:32:49.700+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-28T07:32:49.717+0000] {sql.py:457} INFO - Running statement: truncate table STG_Dim_Customers;
+truncate table STG_Dim_Products;
+truncate table STG_Dim_Dates;
+truncate table STG_Dim_Time;
+
+insert into STG_Dim_Products(Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,isValid)
+select 
+cast(Product_ID as integer),
+case when Product_Name is null then 'missing' else Product_Name end,
+case when Supplier similar to '[0-9]+' then cast(Supplier as integer) else 0 end,
+case when Category similar to '[0-9]+' then cast(Category as integer) else 0 end,
+case when Unit_Price similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Price as decimal(15,5))>=0
+     then cast(Unit_Price as decimal(15,5)) else null end,
+case when Unit_Cost similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Cost as decimal(15,5))>=0
+     then cast(Unit_Cost as decimal(15,5)) else null end,
+isValid
+from MRR_Dim_Products
+where isValid='valid';
+
+insert into STG_Dim_Customers(Customer_ID,country,currency,exchange_to_USD,installation_date,media_source,isValid)
+select
+cast(Customer_ID as integer),
+case when country is null then 'missing' else country end,
+case when currency is null then 'missing' else currency end,
+case when exchange_to_USD similar to '[0-9]+(\.[0-9]+)?' and cast(exchange_to_USD as decimal(3,2))>=0
+     then cast(exchange_to_USD as decimal(3,2)) else null end,
+case
+    -- YYYY-MM-DD
+    when installation_date ~ '^\d{4}-\d{2}-\d{2}$' then to_date(installation_date, 'YYYY-MM-DD')
+    -- DD-MM-YYYY
+    when installation_date ~ '^\d{2}-\d{2}-\d{4}$' then to_date(installation_date, 'DD-MM-YYYY')
+    -- YYYY.MM.DD
+    when installation_date ~ '^\d{4}.\d{2}.\d{2}$' then to_date(installation_date, 'YYYY.MM.DD')
+    -- DD.MM.YYYY
+    when installation_date ~ '^\d{2}.\d{2}.\d{4}$' then to_date(installation_date, 'DD.MM.YYYY')
+    -- DD/MM/YYYY
+    when installation_date ~ '^\d{2}/\d{2}/\d{4}$' then to_date(installation_date, 'DD/MM/YYYY')
+    -- YYYY/MM/DD
+    when installation_date ~ '^\d{4}/\d{2}/\d{2}$' then to_date(installation_date, 'YYYY/MM/DD')
+    -- DD\MM\YYYY
+    when installation_date ~ '^\d{2}\\d{2}\\d{4}$' then to_date(installation_date, 'DD\MM\YYYY')
+    -- YYYY\MM\DD
+    when installation_date ~ '^\d{4}\\d{2}\\d{2}$' then to_date(installation_date, 'YYYY\MM\DD')
+    else '1900-01-01' end,
+    media_source,
+    isValid 
+from MRR_Dim_Customers
+where isValid='valid';
+
+
+insert into STG_Dim_Dates(Date,Year,Quarter,Month,Day)
+select
+generate_series::date,
+extract(year from generate_series),
+extract(quarter from generate_series),
+extract(month from generate_series),
+extract(day from generate_series)
+from generate_series('2024-01-01'::date, CURRENT_DATE::date, '1 day');
+
+
+insert into STG_Dim_Time(DateTime, Date, Hour)
+SELECT
+  generate_series::TIMESTAMP,
+  DATE_TRUNC('hour', generate_series::TIMESTAMP),
+  EXTRACT(HOUR FROM generate_series::TIMESTAMP) AS hour
+FROM
+  GENERATE_SERIES('2024-01-01'::TIMESTAMP, CURRENT_DATE::TIMESTAMP, '1 hour');
+, parameters: None
+[2024-04-28T07:32:49.747+0000] {sql.py:466} INFO - Rows affected: 2833
+[2024-04-28T07:32:49.749+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/providers/common/sql/hooks/sql.py:407: AirflowProviderDeprecationWarning: Call to deprecated method _make_common_data_structure. (The `_make_serializable` method is deprecated and support will be removed in a future version of the common.sql provider. Please update the DbApiHook's provider to a version based on common.sql >= 1.9.1.)
+  result = self._make_common_data_structure(handler(cur))
+
+[2024-04-28T07:32:49.770+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=dim_mrr2stg, execution_date=20240426T211100, start_date=20240428T073248, end_date=20240428T073249
+[2024-04-28T07:32:49.806+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-04-28T07:32:49.821+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-04-28T07:32:49.853+0000] {taskinstance.py:3309} INFO - 1 downstream tasks scheduled from follow-on schedule check

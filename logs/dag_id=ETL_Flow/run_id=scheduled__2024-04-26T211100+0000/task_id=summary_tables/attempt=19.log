@@ -1,0 +1,288 @@
+[2024-04-28T14:00:36.991+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.summary_tables scheduled__2024-04-26T21:11:00+00:00 [queued]>
+[2024-04-28T14:00:37.017+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.summary_tables scheduled__2024-04-26T21:11:00+00:00 [queued]>
+[2024-04-28T14:00:37.019+0000] {taskinstance.py:2193} INFO - Starting attempt 19 of 24
+[2024-04-28T14:00:37.056+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): summary_tables> on 2024-04-26 21:11:00+00:00
+[2024-04-28T14:00:37.097+0000] {standard_task_runner.py:60} INFO - Started process 2577 to run task
+[2024-04-28T14:00:37.106+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'summary_tables', 'scheduled__2024-04-26T21:11:00+00:00', '--job-id', '2979', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmp14nu046v']
+[2024-04-28T14:00:37.112+0000] {standard_task_runner.py:88} INFO - Job 2979: Subtask summary_tables
+[2024-04-28T14:00:37.287+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.summary_tables scheduled__2024-04-26T21:11:00+00:00 [running]> on host d838c4eb4dcc
+[2024-04-28T14:00:38.204+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='summary_tables' AIRFLOW_CTX_EXECUTION_DATE='2024-04-26T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='19' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-04-26T21:11:00+00:00'
+[2024-04-28T14:00:38.206+0000] {sql.py:276} INFO - Executing: insert into Daily_Customers_Transactions (DW_customer_ID,date,country,media_source,installation_date,last_seen, days_since_installation,days_since_last_seen,engagement_status)
+
+with last_Seen as (
+    select DW_customer_ID, max(date(event_time)) last_seen
+    from DWH_Fact_Events
+    group by DW_customer_ID
+),
+last_order as (
+    select DW_customer_ID, max(date(order_time)) last_order
+    from dwh_fact_product_in_order
+    group by DW_customer_ID
+),
+temp as (
+    select 
+    DW_customer_ID, 
+    date, 
+    country, 
+    media_source, 
+    installation_date, 
+    e.last_seen,
+    date_part('day', AGE(CURRENT_DATE, installation_date)) days_since_installation,
+    date_part('day', AGE(CURRENT_DATE, e.last_seen)) days_since_last_seen,
+    o.last_order
+    from (DWH_Dim_Dates cross join DWH_Dim_Customers) src 
+    join last_Seen e on src.DW_customer_ID = e.DW_customer_ID
+    join last_order o on src.DW_customer_ID = o.DW_customer_ID 
+    where src.valid_until is null and  (src.DW_customer_ID,date) not in 
+                                                            ( --Incremental loading
+                                                            select distinct DW_customer_ID, date
+                                                            from Daily_Customers_Transactions
+                                                            )
+
+    )
+select *,  ---business assumption: measuring transactions based on 
+case when installation_date >= (current_date - 7) then 'New customers'  --customer who installed the app in the past 7 days.  
+     when last_seen < (current_date - 14) then 'Non-Engaged'
+     when o.last_order is null or o.last_order < (current_date - 14) then 'Mid-Engaged'
+     when o.last_order >= (current_date - 14) then 'Engaged'
+     end as 'engagement_status'
+from temp ;
+
+
+-- insert into Daily_Purchase_Agg (DW_customer_ID,order_date,country,supplier,category,media_source,total_cost,total_purchase_USD)
+-- select 
+-- DW_Customer_ID,
+-- date(order_time),
+-- country,
+-- supplier,
+-- category, 
+-- media_source, 
+-- sum(total_cost), 
+-- sum(total_price_after_discount * exchange_to_USD)
+-- from dwh_fact_product_in_order
+-- where  (DW_customer_ID, date(order_time)) not in 
+--                                             ( --Incremental loading
+--                                             select distinct DW_customer_ID, order_date
+--                                             from Daily_Purchase_Agg
+--                                             )
+-- group by DW_Customer_ID, date(order_time), country, supplier, category, media_source;
+
+
+
+-- insert into Daily_Event_Agg (event_description,event_date,country,media_source,count)
+-- select 
+-- event_description, 
+-- date(event_time), 
+-- country, 
+-- media_source, 
+-- count(*)
+-- from DWH_Fact_Events
+-- where  (event_description, date(event_time)) not in 
+--                                                     ( --Incremental loading
+--                                                     select distinct event_description, event_date
+--                                                     from Daily_Event_Agg
+--                                                     )
+-- group by event_description, date(event_time), country, media_source;
+
+
+
+-- insert into Monthly_Product_Rank (DW_product_ID,first_day_of_month,category,popularity_percent_rank,profitabilty_percent_rank)
+-- with cte as (
+-- select 
+-- dw_product_id, 
+-- (DATE_TRUNC('MONTH', order_time))::DATE as first_day_of_month,
+-- category,
+-- count(order_id) number_of_orders,
+-- sum (total_price_after_discount - total_cost) net_profit
+-- from DWH_Fact_Product_In_Order
+-- where (dw_product_id, (DATE_TRUNC('MONTH', order_time))::DATE) not in --Incremental loading
+--                                                                     (
+--                                                                      select distinct dw_product_id, first_day_of_month
+--                                                                      from Monthly_Product_Rank
+--                                                                     )
+-- group by dw_product_id, (DATE_TRUNC('MONTH', order_time))::DATE, category                              
+-- )
+-- select 
+-- dw_product_id,
+-- first_day_of_month,
+-- category,
+-- percent_rank() over (partition by category order by number_of_orders),
+-- percent_rank() over (partition by category order by net_profit)
+-- from cte;                              
+
+
+-- insert into Monthly_Supplier_Rank (category,first_day_of_month,supplier, popularity_percent_rank, profitabilty_percent_rank)
+-- with cte as (
+-- select 
+-- category,
+-- (DATE_TRUNC('MONTH', order_time))::DATE as first_day_of_month,
+-- supplier,
+-- count(order_id) number_of_orders,
+-- sum (total_price_after_discount - total_cost) net_profit
+-- from DWH_Fact_Product_In_Order
+-- where (category, (DATE_TRUNC('MONTH', order_time))::DATE) not in --Incremental loading
+--                                                                 (
+--                                                                 select distinct category, first_day_of_month
+--                                                                 from Monthly_Supplier_Rank
+--                                                                 )
+-- group by category, (DATE_TRUNC('MONTH', order_time))::DATE, supplier                              
+-- )
+-- select 
+-- category,
+-- first_day_of_month,
+-- supplier,
+-- percent_rank() over (partition by supplier order by number_of_orders),
+-- percent_rank() over (partition by supplier order by net_profit)
+-- from cte;  
+[2024-04-28T14:00:38.230+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-28T14:00:38.251+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-28T14:00:38.301+0000] {sql.py:457} INFO - Running statement: insert into Daily_Customers_Transactions (DW_customer_ID,date,country,media_source,installation_date,last_seen, days_since_installation,days_since_last_seen,engagement_status)
+
+with last_Seen as (
+    select DW_customer_ID, max(date(event_time)) last_seen
+    from DWH_Fact_Events
+    group by DW_customer_ID
+),
+last_order as (
+    select DW_customer_ID, max(date(order_time)) last_order
+    from dwh_fact_product_in_order
+    group by DW_customer_ID
+),
+temp as (
+    select 
+    DW_customer_ID, 
+    date, 
+    country, 
+    media_source, 
+    installation_date, 
+    e.last_seen,
+    date_part('day', AGE(CURRENT_DATE, installation_date)) days_since_installation,
+    date_part('day', AGE(CURRENT_DATE, e.last_seen)) days_since_last_seen,
+    o.last_order
+    from (DWH_Dim_Dates cross join DWH_Dim_Customers) src 
+    join last_Seen e on src.DW_customer_ID = e.DW_customer_ID
+    join last_order o on src.DW_customer_ID = o.DW_customer_ID 
+    where src.valid_until is null and  (src.DW_customer_ID,date) not in 
+                                                            ( --Incremental loading
+                                                            select distinct DW_customer_ID, date
+                                                            from Daily_Customers_Transactions
+                                                            )
+
+    )
+select *,  ---business assumption: measuring transactions based on 
+case when installation_date >= (current_date - 7) then 'New customers'  --customer who installed the app in the past 7 days.  
+     when last_seen < (current_date - 14) then 'Non-Engaged'
+     when o.last_order is null or o.last_order < (current_date - 14) then 'Mid-Engaged'
+     when o.last_order >= (current_date - 14) then 'Engaged'
+     end as 'engagement_status'
+from temp ;
+
+
+-- insert into Daily_Purchase_Agg (DW_customer_ID,order_date,country,supplier,category,media_source,total_cost,total_purchase_USD)
+-- select 
+-- DW_Customer_ID,
+-- date(order_time),
+-- country,
+-- supplier,
+-- category, 
+-- media_source, 
+-- sum(total_cost), 
+-- sum(total_price_after_discount * exchange_to_USD)
+-- from dwh_fact_product_in_order
+-- where  (DW_customer_ID, date(order_time)) not in 
+--                                             ( --Incremental loading
+--                                             select distinct DW_customer_ID, order_date
+--                                             from Daily_Purchase_Agg
+--                                             )
+-- group by DW_Customer_ID, date(order_time), country, supplier, category, media_source;
+
+
+
+-- insert into Daily_Event_Agg (event_description,event_date,country,media_source,count)
+-- select 
+-- event_description, 
+-- date(event_time), 
+-- country, 
+-- media_source, 
+-- count(*)
+-- from DWH_Fact_Events
+-- where  (event_description, date(event_time)) not in 
+--                                                     ( --Incremental loading
+--                                                     select distinct event_description, event_date
+--                                                     from Daily_Event_Agg
+--                                                     )
+-- group by event_description, date(event_time), country, media_source;
+
+
+
+-- insert into Monthly_Product_Rank (DW_product_ID,first_day_of_month,category,popularity_percent_rank,profitabilty_percent_rank)
+-- with cte as (
+-- select 
+-- dw_product_id, 
+-- (DATE_TRUNC('MONTH', order_time))::DATE as first_day_of_month,
+-- category,
+-- count(order_id) number_of_orders,
+-- sum (total_price_after_discount - total_cost) net_profit
+-- from DWH_Fact_Product_In_Order
+-- where (dw_product_id, (DATE_TRUNC('MONTH', order_time))::DATE) not in --Incremental loading
+--                                                                     (
+--                                                                      select distinct dw_product_id, first_day_of_month
+--                                                                      from Monthly_Product_Rank
+--                                                                     )
+-- group by dw_product_id, (DATE_TRUNC('MONTH', order_time))::DATE, category                              
+-- )
+-- select 
+-- dw_product_id,
+-- first_day_of_month,
+-- category,
+-- percent_rank() over (partition by category order by number_of_orders),
+-- percent_rank() over (partition by category order by net_profit)
+-- from cte;                              
+
+
+-- insert into Monthly_Supplier_Rank (category,first_day_of_month,supplier, popularity_percent_rank, profitabilty_percent_rank)
+-- with cte as (
+-- select 
+-- category,
+-- (DATE_TRUNC('MONTH', order_time))::DATE as first_day_of_month,
+-- supplier,
+-- count(order_id) number_of_orders,
+-- sum (total_price_after_discount - total_cost) net_profit
+-- from DWH_Fact_Product_In_Order
+-- where (category, (DATE_TRUNC('MONTH', order_time))::DATE) not in --Incremental loading
+--                                                                 (
+--                                                                 select distinct category, first_day_of_month
+--                                                                 from Monthly_Supplier_Rank
+--                                                                 )
+-- group by category, (DATE_TRUNC('MONTH', order_time))::DATE, supplier                              
+-- )
+-- select 
+-- category,
+-- first_day_of_month,
+-- supplier,
+-- percent_rank() over (partition by supplier order by number_of_orders),
+-- percent_rank() over (partition by supplier order by net_profit)
+-- from cte;  , parameters: None
+[2024-04-28T14:00:38.319+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.SyntaxError: syntax error at or near "'engagement_status'"
+LINE 39:      end as 'engagement_status'
+                     ^
+
+[2024-04-28T14:00:38.367+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=summary_tables, execution_date=20240426T211100, start_date=20240428T140036, end_date=20240428T140038
+[2024-04-28T14:00:38.421+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 2979 for task summary_tables (syntax error at or near "'engagement_status'"
+LINE 39:      end as 'engagement_status'
+                     ^
+; 2577)
+[2024-04-28T14:00:38.490+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-04-28T14:00:38.568+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

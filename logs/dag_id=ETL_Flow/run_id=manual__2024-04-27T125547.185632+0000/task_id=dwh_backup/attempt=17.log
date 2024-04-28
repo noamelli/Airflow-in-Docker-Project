@@ -1,0 +1,117 @@
+[2024-04-27T14:25:35.105+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dwh_backup manual__2024-04-27T12:55:47.185632+00:00 [queued]>
+[2024-04-27T14:25:35.119+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dwh_backup manual__2024-04-27T12:55:47.185632+00:00 [queued]>
+[2024-04-27T14:25:35.120+0000] {taskinstance.py:2193} INFO - Starting attempt 17 of 22
+[2024-04-27T14:25:35.151+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dwh_backup> on 2024-04-27 12:55:47.185632+00:00
+[2024-04-27T14:25:35.161+0000] {standard_task_runner.py:60} INFO - Started process 7960 to run task
+[2024-04-27T14:25:35.167+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dwh_backup', 'manual__2024-04-27T12:55:47.185632+00:00', '--job-id', '2797', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpcshcwvri']
+[2024-04-27T14:25:35.172+0000] {standard_task_runner.py:88} INFO - Job 2797: Subtask dwh_backup
+[2024-04-27T14:25:35.256+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dwh_backup manual__2024-04-27T12:55:47.185632+00:00 [running]> on host d838c4eb4dcc
+[2024-04-27T14:25:35.611+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dwh_backup' AIRFLOW_CTX_EXECUTION_DATE='2024-04-27T12:55:47.185632+00:00' AIRFLOW_CTX_TRY_NUMBER='17' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-04-27T12:55:47.185632+00:00'
+[2024-04-27T14:25:35.614+0000] {sql.py:276} INFO - Executing: truncate table DWH_Dim_Products_Backup;
+truncate table DWH_Dim_Customers_Backup;
+truncate table DWH_Fact_Product_In_Order_Backup;
+truncate table DWH_Fact_Events_backup;
+truncate table Daily_Customers_Transactions_backup;
+truncate table Daily_Purchase_Agg_backup;
+truncate table Daily_Event_Agg_backup;
+truncate table Monthly_Product_Rank_backup;
+truncate table Monthly_Supplier_Rank_backup;
+
+
+
+
+insert into DWH_Dim_Products_Backup(DW_product_ID,Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,Valid_From,Valid_Until)
+select * from DWH_Dim_Products;
+
+insert into DWH_Dim_Customers_Backup(DW_Customer_ID,Customer_ID,country,currency,exchange_to_USD,installation_date,media_source,Valid_From,Valid_Until)
+select * from DWH_Dim_Customers;
+
+insert into DWH_Fact_Product_In_Order_Backup(Order_ID,DW_product_ID,DW_Customer_ID,Order_Time,country, currency, exchange_to_USD,installation_date,media_source, supplier,
+                                             category,Quantity,total_price_before_discount,Total_Cost,incremental_discount, total_price_after_discount)
+select * from DWH_Fact_Product_In_Order;
+
+insert into DWH_Fact_Events_backup(event_ID,event_description,event_time,DW_customer_ID)
+select * from DWH_Fact_Events;
+
+insert into Daily_Customers_Transactions_backup(DW_customer_ID,date,country,media_source,last_seen,days_since_installation,days_since_last_seen,status)
+select * from Daily_Customers_Transactions;
+
+insert into Daily_Purchase_Agg_backup(DW_customer_ID,event_date,country,supplier,category,media_source,total_cost,total_purchase_USD)
+select * from Daily_Purchase_Agg;
+
+insert into Daily_Event_Agg_backup(event_description,event_datecountry,media_source,count )
+select * from Daily_Event_Agg;
+
+insert into Monthly_Product_Rank_backup(DW_product_ID,first_day_of_month,product_ID,product_name,category,popularity_percent_rank, profitabilty_percent_rank)
+select * from monthly_Product_Rank;
+
+insert into Monthly_Supplier_Rank_backup(category,first_day_of_month,supplier, popularity_percent_rank, profitabilty_percent_rank)
+select * from monthly_Supplier_Rank;
+[2024-04-27T14:25:35.631+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-27T14:25:35.646+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-27T14:25:35.668+0000] {sql.py:457} INFO - Running statement: truncate table DWH_Dim_Products_Backup;
+truncate table DWH_Dim_Customers_Backup;
+truncate table DWH_Fact_Product_In_Order_Backup;
+truncate table DWH_Fact_Events_backup;
+truncate table Daily_Customers_Transactions_backup;
+truncate table Daily_Purchase_Agg_backup;
+truncate table Daily_Event_Agg_backup;
+truncate table Monthly_Product_Rank_backup;
+truncate table Monthly_Supplier_Rank_backup;
+
+
+
+
+insert into DWH_Dim_Products_Backup(DW_product_ID,Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,Valid_From,Valid_Until)
+select * from DWH_Dim_Products;
+
+insert into DWH_Dim_Customers_Backup(DW_Customer_ID,Customer_ID,country,currency,exchange_to_USD,installation_date,media_source,Valid_From,Valid_Until)
+select * from DWH_Dim_Customers;
+
+insert into DWH_Fact_Product_In_Order_Backup(Order_ID,DW_product_ID,DW_Customer_ID,Order_Time,country, currency, exchange_to_USD,installation_date,media_source, supplier,
+                                             category,Quantity,total_price_before_discount,Total_Cost,incremental_discount, total_price_after_discount)
+select * from DWH_Fact_Product_In_Order;
+
+insert into DWH_Fact_Events_backup(event_ID,event_description,event_time,DW_customer_ID)
+select * from DWH_Fact_Events;
+
+insert into Daily_Customers_Transactions_backup(DW_customer_ID,date,country,media_source,last_seen,days_since_installation,days_since_last_seen,status)
+select * from Daily_Customers_Transactions;
+
+insert into Daily_Purchase_Agg_backup(DW_customer_ID,event_date,country,supplier,category,media_source,total_cost,total_purchase_USD)
+select * from Daily_Purchase_Agg;
+
+insert into Daily_Event_Agg_backup(event_description,event_datecountry,media_source,count )
+select * from Daily_Event_Agg;
+
+insert into Monthly_Product_Rank_backup(DW_product_ID,first_day_of_month,product_ID,product_name,category,popularity_percent_rank, profitabilty_percent_rank)
+select * from monthly_Product_Rank;
+
+insert into Monthly_Supplier_Rank_backup(category,first_day_of_month,supplier, popularity_percent_rank, profitabilty_percent_rank)
+select * from monthly_Supplier_Rank;, parameters: None
+[2024-04-27T14:25:35.715+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.SyntaxError: INSERT has more expressions than target columns
+LINE 25: select * from DWH_Fact_Events;
+                ^
+
+[2024-04-27T14:25:35.737+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=dwh_backup, execution_date=20240427T125547, start_date=20240427T142535, end_date=20240427T142535
+[2024-04-27T14:25:35.768+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 2797 for task dwh_backup (INSERT has more expressions than target columns
+LINE 25: select * from DWH_Fact_Events;
+                ^
+; 7960)
+[2024-04-27T14:25:35.822+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-04-27T14:25:35.841+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-04-27T14:25:35.870+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

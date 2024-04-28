@@ -1,0 +1,243 @@
+[2024-04-25T15:38:04.919+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-03-30T21:11:00+00:00 [queued]>
+[2024-04-25T15:38:05.492+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-03-30T21:11:00+00:00 [queued]>
+[2024-04-25T15:38:05.535+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-04-25T15:38:06.044+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dim_stg2dwh> on 2024-03-30 21:11:00+00:00
+[2024-04-25T15:38:06.130+0000] {standard_task_runner.py:60} INFO - Started process 121 to run task
+[2024-04-25T15:38:06.218+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dim_stg2dwh', 'scheduled__2024-03-30T21:11:00+00:00', '--job-id', '2638', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpsik2anwu']
+[2024-04-25T15:38:06.297+0000] {standard_task_runner.py:88} INFO - Job 2638: Subtask dim_stg2dwh
+[2024-04-25T15:38:07.144+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-03-30T21:11:00+00:00 [running]> on host d838c4eb4dcc
+[2024-04-25T15:38:26.346+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dim_stg2dwh' AIRFLOW_CTX_EXECUTION_DATE='2024-03-30T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-03-30T21:11:00+00:00'
+[2024-04-25T15:38:26.377+0000] {sql.py:276} INFO - Executing: truncate table DWH_Dim_Dates;
+truncate table DWH_Dim_Time;
+
+insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates;
+
+insert into DWH_Dim_Time (DateTime,Date,Hour)
+select * 
+from STG_Dim_Time;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
+select *
+from STG_Dim_Customers  
+where Customer_ID not in (
+                          select distinct Customer_ID
+                          from DWH_Dim_Customers
+                          );
+
+
+
+--update the valid until date of customers who moved to another city/country
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.City <> d.City or s.Country <> d.Country) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another city/country                             
+insert into DWH_Dim_Customers (Customer_ID,Company_Name,Contact_Name,Street,City,Postal_Code,Country,Phone,Fax)
+select s.Customer_ID,s.Company_Name,s.Contact_Name,s.Street,s.City,s.Postal_Code,s.Country,s.Phone,s.Fax
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.City <> d.City or s.Country <> d.Country;
+
+--products
+
+-- insert all the new products records 
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select *
+from STG_Dim_Products s 
+where Product_ID not in 
+                            (
+                              select distinct Product_ID
+                              from DWH_Dim_Products       
+                            );
+-- update the valid until date of products that their price/cost/supplier have changed
+update DWH_Dim_Products
+set Valid_Until=current_date
+where DW_Prdocut_ID in (
+                            select DW_Prdocut_ID 
+                            from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+                            where (s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier) 
+                            and d.Valid_Until is null
+                          );
+
+
+
+-- insert records of products that their price/cost/supplier have changed                             
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select s.Product_ID,s.Product_Name,s.Supplier,s.Category,s.Unit_Price,s.Unit_Cost
+from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier;
+
+-- employees
+
+-- insert all the new employees records 
+insert into DWH_Dim_Employees (Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)
+select *
+from STG_Dim_Employees 
+where Employee_ID not in 
+                            (
+                              select distinct Employee_ID
+                              from DWH_Dim_Employees       
+                            );
+--update the valid until date of employees that their salary/title/manager/office have changed
+update DWH_Dim_Employees
+set Valid_Until=current_date
+where DWH_Dim_Employees in (
+                            select DWH_Dim_Employees 
+                            from STG_Dim_Employees s inner join DWH_Dim_Employees d on d.Employee_ID = s.Employee_ID
+                            where (s.Reports_To <> d.Reports_To or s.title <> d.title or s.Month_Salary <> d.Month_Salary or s.office <> d.office) 
+                            and d.Valid_Until is null
+                          );
+
+-- insert records of employees that their manager/title/salary/office have changed                             
+insert into DWH_Dim_Employees (Employee_ID,Last_Name,First_Name,Title,Hire_Date,Office,Reports_To,Month_Salary)
+select s.Employee_ID,s.Last_Name,s.First_Name,s.Title,s.Hire_Date,s.Office,s.Reports_To,s.Month_Salary
+from STG_Dim_Employees s inner join DWH_Dim_Employees d on d.Employee_ID=s.Employee_ID
+where s.Reports_To <> d.Reports_To or s.title <> d.title or s.Month_Salary <> d.Month_Salary or s.office <> d.office
+
+
+[2024-04-25T15:38:26.807+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-25T15:38:26.980+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-25T15:38:40.326+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 397, in run
+    with closing(self.get_conn()) as conn:
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/postgres/hooks/postgres.py", line 161, in get_conn
+    self.conn = psycopg2.connect(**conn_args)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "host.docker.internal" to address: Temporary failure in name resolution
+
+[2024-04-25T15:38:47.643+0000] {job.py:213} ERROR - Job heartbeat got an exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/jobs/job.py", line 208, in heartbeat
+    heartbeat_callback(session)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/utils/session.py", line 76, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/jobs/local_task_job_runner.py", line 252, in heartbeat_callback
+    self.task_instance.refresh_from_db()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/utils/session.py", line 79, in wrapper
+    return func(*args, session=session, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 1748, in refresh_from_db
+    _refresh_from_db(task_instance=self, session=session, lock_for_update=lock_for_update)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 475, in _refresh_from_db
+    ti = TaskInstance.get_task_instance(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/api_internal/internal_api_call.py", line 114, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/utils/session.py", line 76, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 1734, in get_task_instance
+    return query.one_or_none()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/query.py", line 2850, in one_or_none
+    return self._iter().one_or_none()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/query.py", line 2916, in _iter
+    result = self.session.execute(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1716, in execute
+    conn = self._connection_for_bind(bind)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1555, in _connection_for_bind
+    return self._transaction._connection_for_bind(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 750, in _connection_for_bind
+    conn = bind.connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/future/engine.py", line 412, in connect
+    return super(Engine, self).connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3325, in connect
+    return self._connection_cls(self, close_with_result=close_with_result)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+    else engine.raw_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3404, in raw_connection
+    return self._wrap_pool_connect(self.pool.connect, _connection)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3374, in _wrap_pool_connect
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 2208, in _handle_dbapi_exception_noconnection
+    util.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not translate host name "postgres" to address: Temporary failure in name resolution
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+[2024-04-25T15:38:59.904+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-04-25T15:39:07.020+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 2638 for task dim_stg2dwh ((psycopg2.OperationalError) could not translate host name "postgres" to address: Temporary failure in name resolution
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8); 121)
+[2024-04-25T15:39:19.251+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-04-25T15:39:19.378+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-04-25T15:39:29.473+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-04-25T15:39:29.959+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

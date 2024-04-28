@@ -22,15 +22,15 @@ dag = DAG(
 
 file_paths = {
     'customers': '/opt/airflow/dags/operationalData/customers.xlsx',
-    'employees': '/opt/airflow/dags/operationalData/employees.xlsx',
+    'events': '/opt/airflow/dags/operationalData/events.xlsx',
     'products': '/opt/airflow/dags/operationalData/products.xlsx',
     'orders': '/opt/airflow/dags/operationalData/orders.xlsx',
-    'details': '/opt/airflow/dags/operationalData/details.xlsx'
+    'details': '/opt/airflow/dags/operationalData/order_details.xlsx'
 }
 
 table_names = {
     'customers': 'MRR_Dim_Customers',
-    'employees': 'MRR_Dim_Employees',
+    'events': 'MRR_Fact_Events',
     'products': 'MRR_Dim_Products',
     'orders': 'MRR_Fact_Orders',
     'details': 'MRR_Fact_Details'
@@ -44,10 +44,17 @@ create_tables = PostgresOperator(
      dag=dag
  ) 
     
-truncate_mrr_stg = PostgresOperator(
-        task_id='truncate_mrr_stg',
+create_indexes = PostgresOperator(
+     task_id='create_indexes',
+     postgres_conn_id='postgres_localhost',
+     sql='sql/create_indexes.sql',
+     dag=dag
+ ) 
+        
+truncate_mrr = PostgresOperator(
+        task_id='truncate_mrr',
         postgres_conn_id='postgres_localhost',
-        sql='sql/truncate_mrr_stg.sql',
+        sql='sql/truncate_mrr.sql',
         dag=dag
 )
 
@@ -100,12 +107,13 @@ fact_stg2dwh = PostgresOperator(
         dag=dag
 )  
 
-snapshot = PostgresOperator(
-        task_id='snapshot',
+summary_tables = PostgresOperator(
+        task_id='summary_tables',
         postgres_conn_id='postgres_localhost',
-        sql='sql/snapshot.sql',
+        sql='sql/summary_tables.sql',
         dag=dag
 )      
 
 #DAG FLOW
-create_tables>> truncate_mrr_stg >> dwh_backup  >> insert_data_task >> dim_mrr2stg >>dim_stg2dwh >>fact_mrr2stg>>referential_integrity >> fact_stg2dwh >> snapshot
+create_tables >> create_indexes >> truncate_mrr >> insert_data_task >> dim_mrr2stg
+dim_mrr2stg >> dwh_backup >> dim_stg2dwh >> fact_mrr2stg >> referential_integrity >> fact_stg2dwh >> summary_tables

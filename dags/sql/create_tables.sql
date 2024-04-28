@@ -1,315 +1,349 @@
+
+
+
 CREATE TABLE IF NOT EXISTS MRR_Dim_Customers(
-    Customer_ID varchar(50) null,
-    Company_Name varchar(50) null,
-    Contact_Name varchar(50) null,
-    Street varchar(50) null,
-    City varchar(50) null,
-    Postal_Code varchar(50) null,
-    Country varchar(50) null,
-    Phone varchar(50) null,
-    Fax varchar(50) null,
-    isValid varchar(50) not null
+Customer_ID             varchar(50) null,
+country             varchar(50) null,
+currency            varchar(50) null,
+exchange_to_usd     varchar(50) null,
+installation_date   varchar(50) null,
+media_source        varchar(50) null,
+isValid             varchar(50) not null
 );
 
-CREATE TABLE IF NOT EXISTS MRR_Dim_Employees(
-    Employee_ID varchar(50) null,
-    Last_Name varchar(50) null,
-    First_Name varchar(50) null,
-    Title varchar(50) null,
-    Hire_Date varchar(50) null,
-    Office varchar(50) null,
-    Reports_To varchar(50) null,
-    Month_Salary varchar(50) null,
-    isValid varchar(50) not null
-);
 
 CREATE TABLE IF NOT EXISTS MRR_Dim_Products(
-    Product_ID varchar(50) null,
-    Product_Name varchar(50) null,
-    Supplier varchar(50) null,
-    Category varchar(50) null,
-    Unit_Price varchar(50) null,
-    Unit_Cost varchar(50) null,
-    isValid varchar(50) not null
+product_ID          varchar(50) null,
+product_name        varchar(50) null,
+supplier            varchar(50) null,
+category            varchar(50) null,
+unit_price          varchar(50) null,
+unit_cost           varchar(50) null,
+isValid             varchar(50) not null
 );
 
 
 CREATE TABLE IF NOT EXISTS  MRR_Fact_Details(
-    Order_ID varchar(50) null,
-    Product_ID varchar(50) null,
-    Quantity varchar(50) null,
-    isValid varchar(50) not null
+order_ID            varchar(50) null,
+product_ID          varchar(50) null,
+quantity            varchar(50) null
 );
+
 CREATE TABLE IF NOT EXISTS  MRR_Fact_Orders(
-    Order_ID varchar(50) null,
-    Order_Time varchar(50) null,
-    Customer_ID varchar(50) null,
-    Employee_ID varchar(50) null,
-    Shipper_ID varchar(50) null,
-    isValid varchar(50) not null
+order_ID            varchar(50) null,
+order_time          varchar(50) null,
+customer_ID         varchar(50) null,
+coupon_discount     varchar(50) null
+);
+
+CREATE TABLE IF NOT EXISTS MRR_Fact_Events(
+event_ID	        varchar(50)	not null,
+event_description	varchar(50)	not null,
+event_time	        varchar(50)	not null,
+customer_ID	        varchar(50)	not null
 );
 
 CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
-    Customer_ID int not null,
-    Company_Name varchar(50) not null,
-    Contact_Name varchar(50) not null,
-    Street varchar(50) not null,
-    City varchar(50) not null,
-    Postal_Code varchar(50) not null,
-    Country varchar(50) not null,
-    Phone varchar(50) not null,
-    Fax varchar(50) not null,
-    PRIMARY KEY (Customer_ID)
+Customer_ID	            int	    not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_usd	    decimal(3,2)not null,
+installation_date	date	    not null,
+media_source	    varchar(50)	not null,
+isValid	            varchar(50)	not null
 );
 
 CREATE TABLE IF NOT EXISTS  STG_Dim_Dates(
-    Date date not null,
-    Year int not null,
-    Quarter int not null,
-    Month int not null,
-    Day int not null,
-    PRIMARY KEY (Date)
+date	date	not null,
+year	Int	    not null,
+quarter	int	    not null,
+month	int	    not null,
+day	    int	    not null
 );
-
-CREATE TABLE IF NOT EXISTS  STG_Dim_Employees(
-    Employee_ID int not null,
-    Last_Name varchar(50) not null,
-    First_Name varchar(50) not null,
-    Title varchar(50) not null,
-    Hire_Date date not null,
-    Office int not null,
-    Reports_To int null,
-    Month_Salary decimal(15,5) null,
-    PRIMARY KEY (Employee_ID)
-);
-
 
 CREATE TABLE IF NOT EXISTS STG_Dim_Products(
-    Product_ID int not null,
-    Product_Name varchar(50) not null,
-    Supplier int not null,
-    Category int not null,
-    Unit_Price decimal(15,5) null,
-    Unit_Cost decimal(15,5) null,
-    PRIMARY KEY (Product_ID)
+product_ID	    int	not         null,
+product_name	varchar(50)	    not null,
+supplier	    int	            not null,
+category	    int	            not null,
+unit_price	    decimal(15,5)	null,
+unit_cost	    decimal(15,5)	null,
+isValid	        varchar(10)	    not null
 );
 
 CREATE TABLE IF NOT EXISTS STG_Dim_Time(
-    DateTime  timestamp not null,
-    Date date not null,
-    Hour int not null,
-    PRIMARY KEY (DateTime )
+dateTime	timestamp	not null,
+date	    date	    not null,
+hour	    int	    not null
 );
 
 
 CREATE TABLE IF NOT EXISTS  STG_Fact_Details(
-    Order_ID int not null,
-    Product_ID int not null,
-    Quantity int null
+order_ID	int	not null,
+product_ID	int	not null,
+quantity	int	not null
 );
+
 CREATE TABLE IF NOT EXISTS  STG_Fact_Orders(
-    Order_ID int not null,
-    Order_Time timestamp not null,
-    Customer_ID int not null,
-    Employee_ID int not null,
-    Shipper_ID int not null
+order_ID	    int	         not null,
+order_time	    timestamp    not null,
+customer_ID	    int	         not null,
+coupon_discount	decimal(3,2) not null
+);
+
+CREATE TABLE IF NOT EXISTS STG_Fact_Events(
+event_ID	        int	        not null,
+event_description	varchar(50)	not null,
+event_time	        timestamp	not null,
+customer_ID	        int	        not null
 );
 
 
 CREATE TABLE IF NOT EXISTS DWH_Dim_Customers(
-    DW_Customer_ID serial not null,
-    Customer_ID int not null,
-    Company_Name varchar(50) not null,
-    Contact_Name varchar(50) not null,
-    Street varchar(50) not null,
-    City varchar(50) not null,
-    Postal_Code varchar(50) not null,
-    Country varchar(50) not null,
-    Phone varchar(50) not null,
-    Fax varchar(50) not null,
-    Valid_From date not null default current_date,
-    Valid_Until date null,
-    PRIMARY KEY (DW_Customer_ID)
+DW_customer_ID	    serial	    not null,
+Customer_ID	        int	        not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_usd	    decimal(3,2) not null,
+installation_date	date	    not null,
+media_source	    varchar(50)	not null,
+valid_from      	date default current_date null,
+valid_until	        date	    null,
+PRIMARY KEY (DW_customer_ID)
 );
 
 
 CREATE TABLE IF NOT EXISTS  DWH_Dim_Dates(
-    Date date not null,
-    Year int not null,
-    Quarter int not null,
-    Month int not null,
-    Day int not null,
-    PRIMARY KEY (Date)
-);
-
-
-CREATE TABLE IF NOT EXISTS DWH_Dim_Employees(
-    DW_Employee_ID serial not null,
-    Employee_ID int not null,
-    Last_Name varchar(50) not null,
-    First_Name varchar(50) not null,
-    Title varchar(50) not null,
-    Hire_Date date not null,
-    Office int not null,
-    Reports_To int null,
-    Month_Salary decimal(15,5) null,
-    Valid_From date not null default current_date,
-    Valid_Until date null,
-    PRIMARY KEY (DW_Employee_ID)
+date	date	not null,
+year	int	    not null,
+quarter	int	    not null,
+month	int	    not null,
+day	    int	    not null,
+PRIMARY KEY (date)
 );
 
 
 CREATE TABLE IF NOT EXISTS DWH_Dim_Products(
-    DW_Prdocut_ID serial not null,
-    Product_ID int not null,
-    Product_Name varchar(50) not null,
-    Supplier int not null,
-    Category int not null,
-    Unit_Price decimal(15,5) null,
-    Unit_Cost decimal(15,5)  null,
-    Valid_From date not null default current_date,
-    Valid_Until date null,
-    PRIMARY KEY (DW_Prdocut_ID)
+DW_product_ID	serial	    not null,
+product_ID	    int	        not null,
+product_name	varchar(50)	not null,
+supplier	    int	        not null,
+category	    int	        not null,
+unit_price	    decimal(15,5)	null,
+unit_cost	    decimal(15,5)	null,
+valid_from 	    date default current_date null,
+valid_until	    date	        null,
+PRIMARY KEY (DW_product_ID)
 );
 
 
 CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order(
-    Order_ID int not null,
-    DW_Prdocut_ID int not null,
-    DW_Customer_ID int not null,
-    DW_Employee_ID int not null,
-    Order_Time timestamp not null,
-    Quantity int null,
-    Total_Price decimal(15,5) not null,
-    Total_Cost decimal(15,5) not null,
-    Shipper_ID int not null,
-    PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+order_ID	                int	            not null,
+DW_product_ID	            int	            not null,
+DW_customer_ID	            int	            not null,
+order_time	                timestamp	    not null,
+country	                    varchar(50)	    not null,
+currency	                varchar(50)	    not null,
+exchange_to_USD	            decimal(3,2)    not null,
+installation_date	        date	        not null,
+media_source	            varchar(50)	    not null,
+supplier	                int	            not null,
+category	                int	            not null,
+quantity	                int	                null,
+total_price_before_discount  decimal(15,5)  not null,
+total_cost	                 decimal(15,5)  not null,
+incremental_discount         decimal(3,2)   not null,
+total_price_after_discount	 decimal(15,5)	not null,
+PRIMARY KEY (Order_ID, DW_product_ID)
 );
 
 
 CREATE TABLE IF NOT EXISTS DWH_Dim_Time(
-    DateTime  timestamp not null,
-    Date date not null,
-    Hour int not null,
-    PRIMARY KEY (DateTime )
+dateTime	timestamp	not null,
+date	    date	    not null,
+hour	    int	    not null,
+PRIMARY KEY (dateTime )
 );
 
-CREATE TABLE IF NOT EXISTS Snapshot_Customers_Transactions_Arch(
-    DW_Customer_ID int not null,
-    Customer_ID int not null,
-    StartOfMonth date not null,
-    Status varchar(10) not null
+CREATE TABLE IF NOT EXISTS DWH_Fact_Events(
+event_ID	        int	        not null,
+event_description	varchar(50)	not null,
+event_time	        timestamp	not null,
+DW_customer_ID	    int	        not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_USD	    decimal(3,2)not null,
+installation_date	date	    not null,
+media_source	    varchar(50)	not null,
+PRIMARY KEY (event_ID)
 );
 
-CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions(
-    Year int not null,
-    Quarter int not null,
-    Month int not null,
-    Country varchar(50) not null,
-    Count_New_Customers int not null,
-    Count_Regular int not null,
-    Count_Reactivated int not null,
-    Count_Abandons int not null,
-    Count_Total int not null,
-    PRIMARY KEY (Year, Quarter, Month, Country)
+--Summary tables 
+
+CREATE TABLE IF NOT EXISTS Daily_Customers_Transactions(
+DW_customer_ID	        int	        not null,
+date	                date	    not null,
+country	                varchar(50)	not null,
+media_source	        varchar(50)	not null,
+installation_date       date        not null,
+last_seen 	            date	    not null,
+days_since_installation	int	    not null,
+days_since_last_seen	int	    not null,
+engagement_status	    varchar(50)	not null,
+PRIMARY KEY (DW_customer_ID, date)
 );
+
+CREATE TABLE IF NOT EXISTS Daily_Purchase_Agg(
+DW_customer_ID	    int	            not null,
+order_date	        date 	        not null,
+country	            varchar(50)	    not null,
+supplier	        int	            not null,
+category	        int	            not null,
+media_source	    varchar(50)	    not null,
+total_cost	        decimal(15,5)	not null,
+total_purchase_USD	decimal(15,5)	not null,
+PRIMARY KEY (DW_customer_ID, order_date,supplier,category)
+);
+
+CREATE TABLE IF NOT EXISTS Daily_Event_Agg(
+event_description	varchar(50)	not null,
+event_date	        date 	    not null,
+country	            varchar(50)	not null,
+media_source	    varchar(50)	not null,
+count 	            int	        not null,
+PRIMARY KEY (event_description, event_date,country,media_source)
+);
+
+CREATE TABLE IF NOT EXISTS Monthly_Product_Rank(
+DW_product_ID	            serial	    not null,
+first_day_of_month	        date 	    not null,
+category	                int	        not null,
+popularity_percent_rank 	int	        not null,
+profitabilty_percent_rank	int	        not null,
+PRIMARY KEY (DW_product_ID, first_day_of_month)
+);
+
+CREATE TABLE IF NOT EXISTS Monthly_Supplier_Rank(
+category	                int	 not null,
+first_day_of_month	        date not null,
+supplier 	                int	 not null,
+popularity_percent_rank 	int	 not null,
+profitabilty_percent_rank	int	 not null,
+PRIMARY KEY (category, first_day_of_month,supplier)
+);
+
+--backup
 
 CREATE TABLE IF NOT EXISTS DWH_Dim_Customers_backup(
-    DW_Customer_ID serial not null,
-    Customer_ID int not null,
-    Company_Name varchar(50) not null,
-    Contact_Name varchar(50) not null,
-    Street varchar(50) not null,
-    City varchar(50) not null,
-    Postal_Code varchar(50) not null,
-    Country varchar(50) not null,
-    Phone varchar(50) not null,
-    Fax varchar(50) not null,
-    Valid_From date not null default current_date,
-    Valid_Until date null,
-    PRIMARY KEY (DW_Customer_ID)
-);
-
-
-CREATE TABLE IF NOT EXISTS  DWH_Dim_Dates_backup(
-    Date date not null,
-    Year int not null,
-    Quarter int not null,
-    Month int not null,
-    Day int not null,
-    PRIMARY KEY (Date)
-);
-
-
-CREATE TABLE IF NOT EXISTS DWH_Dim_Employees_backup(
-    DW_Employee_ID serial not null,
-    Employee_ID int not null,
-    Last_Name varchar(50) not null,
-    First_Name varchar(50) not null,
-    Title varchar(50) not null,
-    Hire_Date date not null,
-    Office int not null,
-    Reports_To int null,
-    Month_Salary decimal(15,5) null,
-    Valid_From date not null default current_date,
-    Valid_Until date null,
-    PRIMARY KEY (DW_Employee_ID)
+DW_customer_ID	    serial	    not null,
+Customer_ID	            int	        not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_usd	    decimal(3,2) not null,
+installation_date	date	    not null,
+media_source	    varchar(50)	not null,
+valid_from      	date	    null,
+valid_until	        date	    null,
+PRIMARY KEY (DW_customer_ID)
 );
 
 
 CREATE TABLE IF NOT EXISTS DWH_Dim_Products_backup(
-    DW_Prdocut_ID serial not null,
-    Product_ID int not null,
-    Product_Name varchar(50) not null,
-    Supplier int not null,
-    Category int not null,
-    Unit_Price decimal(15,5) null,
-    Unit_Cost decimal(15,5)  null,
-    Valid_From date not null default current_date,
-    Valid_Until date null,
-    PRIMARY KEY (DW_Prdocut_ID)
+DW_product_ID	serial	    not null,
+product_ID	    int	        not null,
+product_name	varchar(50)	not null,
+supplier	    int	        not null,
+category	    int	        not null,
+unit_price	    decimal(15,5)	null,
+unit_cost	    decimal(15,5)	null,
+valid_from 	    date	        null,
+valid_until	    date	        null,
+PRIMARY KEY (DW_product_ID)
 );
+
 
 
 CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order_backup(
-    Order_ID int not null,
-    DW_Prdocut_ID int not null,
-    DW_Customer_ID int not null,
-    DW_Employee_ID int not null,
-    Order_Time timestamp not null,
-    Quantity int null,
-    Total_Price decimal(15,5) not null,
-    Total_Cost decimal(15,5) not null,
-    Shipper_ID int not null,
-    PRIMARY KEY (Order_ID, DW_Prdocut_ID)
+order_ID	            int	            not null,
+DW_product_ID	        int	            not null,
+DW_customer_ID	        int	            not null,
+order_time	            timestamp	    not null,
+country	                varchar(50)	    not null,
+currency	            varchar(50)	    not null,
+exchange_to_USD	        decimal(3,2)    not null,
+installation_date	    date	        not null,
+media_source	        varchar(50)	    not null,
+supplier	            int	            not null,
+category	            int	            not null,
+quantity	            int	                null,
+total_price_before_discount  decimal(15,5)  not null,
+total_cost	            decimal(15,5)   not null,
+incremental_discount    decimal(3,2)    not null,
+total_price_after_discount	 decimal(15,5)	not null,
+PRIMARY KEY (Order_ID, DW_product_ID)
 );
 
-
-CREATE TABLE IF NOT EXISTS DWH_Dim_Time_backup(
-    timestamp  timestamp  not null,
-    Date date not null,
-    Hour int not null,
-    PRIMARY KEY (timestamp )
+CREATE TABLE IF NOT EXISTS DWH_Fact_Events_backup(
+event_ID	        int	        not null,
+event_description	varchar(50)	not null,
+event_time	        timestamp	not null,
+DW_customer_ID	    int	        not null,
+country	            varchar(50)	not null,
+currency	        varchar(50)	not null,
+exchange_to_USD	    decimal(3,2)not null,
+installation_date	date	    not null,
+media_source	    varchar(50)	not null,
+PRIMARY KEY (event_ID)
 );
 
-
-CREATE TABLE IF NOT EXISTS DWH_Snapshot_Customers_Transactions_backup(
-    Year int not null,
-    Quarter int not null,
-    Month int not null,
-    Country varchar(50) not null,
-    Count_New_Customers int not null,
-    Count_Regular int not null,
-    Count_Reactivated int not null,
-    Count_Abandons int not null,
-    Count_Total int not null,
-    PRIMARY KEY (Year, Quarter, Month, Country)
+CREATE TABLE IF NOT EXISTS Daily_Customers_Transactions_backup(
+DW_customer_ID	        int	        not null,
+date	                date	    not null,
+country	                varchar(50)	not null,
+media_source	        varchar(50)	not null,
+installation_date       date        not null,
+last_seen 	            date	    not null,
+days_since_installation	int	        not null,
+days_since_last_seen	int	        not null,
+engagement_status	    varchar(50) not null,
+PRIMARY KEY (DW_customer_ID, date)
 );
 
+CREATE TABLE IF NOT EXISTS Daily_Purchase_Agg_backup(
+DW_customer_ID	    int	            not null,
+order_date	        date 	        not null,
+country	            varchar(50)	    not null,
+supplier	        int	            not null,
+category	        int	            not null,
+media_source	    varchar(50)	    not null,
+total_cost	        decimal(15,5)	not null,
+total_purchase_USD	decimal(15,5)	not null,
+PRIMARY KEY (DW_customer_ID, order_date, supplier, category)
+);
 
+CREATE TABLE IF NOT EXISTS Daily_Event_Agg_backup(
+event_description	varchar(50)	not null,
+event_date	        date 	    not null,
+country	            varchar(50)	not null,
+media_source	    varchar(50)	not null,
+count 	            int	        not null,
+PRIMARY KEY (event_description, event_date,country,media_source)
+);
 
+CREATE TABLE IF NOT EXISTS Monthly_Product_Rank_backup(
+DW_product_ID	            serial	    not null,
+first_day_of_month	        date 	    not null,
+category	                int	        not null,
+popularity_percent_rank 	int	        not null,
+profitabilty_percent_rank	int	        not null,
+PRIMARY KEY (DW_product_ID, first_day_of_month)
+);
 
-
-
-
-
+CREATE TABLE IF NOT EXISTS Monthly_Supplier_Rank_backup(
+category	                int	 not null,
+first_day_of_month	        date not null,
+supplier 	                int	 not null,
+popularity_percent_rank 	int	 not null,
+profitabilty_percent_rank	int	 not null,
+PRIMARY KEY (category, first_day_of_month,supplier)
+);

@@ -1,0 +1,123 @@
+[2024-04-28T06:59:10.264+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.fact_stg2dwh scheduled__2024-04-26T21:11:00+00:00 [queued]>
+[2024-04-28T06:59:10.288+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.fact_stg2dwh scheduled__2024-04-26T21:11:00+00:00 [queued]>
+[2024-04-28T06:59:10.289+0000] {taskinstance.py:2193} INFO - Starting attempt 2 of 7
+[2024-04-28T06:59:10.329+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): fact_stg2dwh> on 2024-04-26 21:11:00+00:00
+[2024-04-28T06:59:10.348+0000] {standard_task_runner.py:60} INFO - Started process 735 to run task
+[2024-04-28T06:59:10.363+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'fact_stg2dwh', 'scheduled__2024-04-26T21:11:00+00:00', '--job-id', '2918', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmps6froie8']
+[2024-04-28T06:59:10.379+0000] {standard_task_runner.py:88} INFO - Job 2918: Subtask fact_stg2dwh
+[2024-04-28T06:59:10.535+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.fact_stg2dwh scheduled__2024-04-26T21:11:00+00:00 [running]> on host d838c4eb4dcc
+[2024-04-28T06:59:11.095+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='fact_stg2dwh' AIRFLOW_CTX_EXECUTION_DATE='2024-04-26T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-04-26T21:11:00+00:00'
+[2024-04-28T06:59:11.097+0000] {sql.py:276} INFO - Executing: insert into DWH_Fact_Product_In_Order (Order_ID,DW_product_ID,DW_Customer_ID,Order_Time,Quantity,total_price_before_discount,Total_Cost,incremental_discount, total_price_after_discount)
+select 
+o.Order_ID,
+p.DW_product_ID,
+c.DW_Customer_ID,
+o.Order_Time,
+c.country,
+c.currency,
+c.exchange_to_usd,
+c.installation_date,
+c.media_source,
+p.supplier,
+p.category,
+d.Quantity,
+(d.Quantity * p.Unit_Price) as Total_Price,
+(d.Quantity * p.Unit_Cost) as Total_Cost,
+coupon_discount/(select count(*) from STG_Fact_Details src where src.Order_ID=d.Order_ID),
+(1-(coupon_discount/(select count(*) from STG_Fact_Details src where src.Order_ID=d.Order_ID)))*(d.Quantity * p.Unit_Price)
+from STG_Fact_Orders o join STG_Fact_Details d on o.Order_ID=d.Order_ID 
+left join DWH_Dim_Customers c on o.Customer_ID=c.Customer_ID --left join in case there is a customer who isn't shown in DWH_Dim_Customers, but he did purchase
+left join DWH_Dim_Products p on d.Product_ID=p.Product_ID --left join in case there is a product that isn't shown in DWH_Dim_products, but was purchased
+where p.Valid_Until is null and c.Valid_Until is null 
+and (o.Order_ID,p.DW_Prdocut_ID) not in ( select distinct Order_ID, DW_Prdocut_ID
+                                          from DWH_Fact_Product_In_Order
+                                        );
+
+insert into DWH_Fact_Events (event_ID,event_description,event_time,DW_customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select 
+event_ID,
+event_description,
+event_time,
+c.DW_customer_ID,
+c.country,
+c.currency,
+c.exchange_to_usd,
+c.installation_date,
+c.media_source
+from STG_Fact_Events e left join DWH_Dim_Customers c on e.customer_ID=c.customer_ID --left join in case there is a customer who isn't shown in DWH_Dim_Customers, but he did purchase
+where c.valid_until is null and event_ID not in (select distinct event_ID 
+                                                 from DWH_Fact_Events  
+                                                 );                       
+
+
+[2024-04-28T06:59:11.121+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-28T06:59:11.139+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-28T06:59:11.172+0000] {sql.py:457} INFO - Running statement: insert into DWH_Fact_Product_In_Order (Order_ID,DW_product_ID,DW_Customer_ID,Order_Time,Quantity,total_price_before_discount,Total_Cost,incremental_discount, total_price_after_discount)
+select 
+o.Order_ID,
+p.DW_product_ID,
+c.DW_Customer_ID,
+o.Order_Time,
+c.country,
+c.currency,
+c.exchange_to_usd,
+c.installation_date,
+c.media_source,
+p.supplier,
+p.category,
+d.Quantity,
+(d.Quantity * p.Unit_Price) as Total_Price,
+(d.Quantity * p.Unit_Cost) as Total_Cost,
+coupon_discount/(select count(*) from STG_Fact_Details src where src.Order_ID=d.Order_ID),
+(1-(coupon_discount/(select count(*) from STG_Fact_Details src where src.Order_ID=d.Order_ID)))*(d.Quantity * p.Unit_Price)
+from STG_Fact_Orders o join STG_Fact_Details d on o.Order_ID=d.Order_ID 
+left join DWH_Dim_Customers c on o.Customer_ID=c.Customer_ID --left join in case there is a customer who isn't shown in DWH_Dim_Customers, but he did purchase
+left join DWH_Dim_Products p on d.Product_ID=p.Product_ID --left join in case there is a product that isn't shown in DWH_Dim_products, but was purchased
+where p.Valid_Until is null and c.Valid_Until is null 
+and (o.Order_ID,p.DW_Prdocut_ID) not in ( select distinct Order_ID, DW_Prdocut_ID
+                                          from DWH_Fact_Product_In_Order
+                                        );
+
+insert into DWH_Fact_Events (event_ID,event_description,event_time,DW_customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select 
+event_ID,
+event_description,
+event_time,
+c.DW_customer_ID,
+c.country,
+c.currency,
+c.exchange_to_usd,
+c.installation_date,
+c.media_source
+from STG_Fact_Events e left join DWH_Dim_Customers c on e.customer_ID=c.customer_ID --left join in case there is a customer who isn't shown in DWH_Dim_Customers, but he did purchase
+where c.valid_until is null and event_ID not in (select distinct event_ID 
+                                                 from DWH_Fact_Events  
+                                                 );                       
+
+, parameters: None
+[2024-04-28T06:59:11.187+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 282, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 404, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 462, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UndefinedColumn: column "dw_prdocut_id" does not exist
+LINE 23: ...DW_Prdocut_ID) not in ( select distinct Order_ID, DW_Prdocut...
+                                                              ^
+
+[2024-04-28T06:59:11.216+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=ETL_Flow, task_id=fact_stg2dwh, execution_date=20240426T211100, start_date=20240428T065910, end_date=20240428T065911
+[2024-04-28T06:59:11.249+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 2918 for task fact_stg2dwh (column "dw_prdocut_id" does not exist
+LINE 23: ...DW_Prdocut_ID) not in ( select distinct Order_ID, DW_Prdocut...
+                                                              ^
+; 735)
+[2024-04-28T06:59:11.302+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2024-04-28T06:59:11.352+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-04-28T06:59:11.432+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check
