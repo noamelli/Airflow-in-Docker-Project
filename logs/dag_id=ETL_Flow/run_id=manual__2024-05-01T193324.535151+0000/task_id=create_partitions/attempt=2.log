@@ -1,0 +1,189 @@
+[2024-05-01T19:34:43.309+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.create_partitions manual__2024-05-01T19:33:24.535151+00:00 [queued]>
+[2024-05-01T19:34:43.335+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.create_partitions manual__2024-05-01T19:33:24.535151+00:00 [queued]>
+[2024-05-01T19:34:43.337+0000] {taskinstance.py:2193} INFO - Starting attempt 2 of 7
+[2024-05-01T19:34:43.383+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): create_partitions> on 2024-05-01 19:33:24.535151+00:00
+[2024-05-01T19:34:43.397+0000] {standard_task_runner.py:60} INFO - Started process 775 to run task
+[2024-05-01T19:34:43.408+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'create_partitions', 'manual__2024-05-01T19:33:24.535151+00:00', '--job-id', '3166', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmp4hqb3pui']
+[2024-05-01T19:34:43.416+0000] {standard_task_runner.py:88} INFO - Job 3166: Subtask create_partitions
+[2024-05-01T19:34:43.558+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.create_partitions manual__2024-05-01T19:33:24.535151+00:00 [running]> on host 9100669c2df2
+[2024-05-01T19:34:44.150+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='create_partitions' AIRFLOW_CTX_EXECUTION_DATE='2024-05-01T19:33:24.535151+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-05-01T19:33:24.535151+00:00'
+[2024-05-01T19:34:44.155+0000] {sql.py:276} INFO - Executing: --product_in_order partitions
+-- Create the default partition
+CREATE TABLE IF NOT EXISTS products_in_orders_default PARTITION OF DWH_Fact_Product_In_Order
+    DEFAULT;
+
+-- Create the future partition to cover all future values
+CREATE TABLE IF NOT EXISTS products_in_orders_future PARTITION OF DWH_Fact_Product_In_Order
+    FOR VALUES FROM (DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year') TO (MAXVALUE);
+
+
+-- Create a function to generate partition names
+CREATE OR REPLACE FUNCTION generate_partition_name(date) RETURNS TEXT AS $$
+BEGIN
+    RETURN 'products_in_orders_' || to_char($1, 'YYYY_q');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a function to create products in orders partitions automatically
+CREATE OR REPLACE FUNCTION create_products_in_orders_partitions() RETURNS VOID AS $$
+DECLARE
+    start_date DATE := DATE_TRUNC('year', CURRENT_DATE);
+    end_date DATE := DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year';
+    quarter_start DATE;
+    quarter_end DATE;
+BEGIN
+    WHILE start_date < end_date LOOP
+        quarter_start := start_date;
+        quarter_end := start_date + INTERVAL '3 months';
+
+        EXECUTE format('
+            CREATE TABLE IF NOT EXISTS %I PARTITION OF DWH_Fact_Product_In_Order
+            FOR VALUES FROM (%L) TO (%L);
+        ', generate_partition_name(quarter_start), quarter_start, quarter_end);
+
+        start_date := quarter_end;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the function to create products in orders partitions
+SELECT create_products_in_orders_partitions();
+
+
+--events partitions
+-- Create the default partition
+CREATE TABLE IF NOT EXISTS events_default PARTITION OF DWH_Fact_Events
+    DEFAULT;
+
+-- Create the future partition to cover all future values
+CREATE TABLE IF NOT EXISTS events_future PARTITION OF DWH_Fact_Events
+    FOR VALUES FROM (DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year') TO (MAXVALUE);
+
+
+-- Create a function to generate partition names
+CREATE OR REPLACE FUNCTION generate_partition_name(date) RETURNS TEXT AS $$
+BEGIN
+    RETURN 'events_' || to_char($1, 'YYYY_q');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a function to create events partitions automatically
+CREATE OR REPLACE FUNCTION create_events_partitions() RETURNS VOID AS $$
+DECLARE
+    start_date DATE := DATE_TRUNC('year', CURRENT_DATE);
+    end_date DATE := DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year';
+    quarter_start DATE;
+    quarter_end DATE;
+BEGIN
+    WHILE start_date < end_date LOOP
+        quarter_start := start_date;
+        quarter_end := start_date + INTERVAL '3 months';
+
+        EXECUTE format('
+            CREATE TABLE IF NOT EXISTS %I PARTITION OF DWH_Fact_Events
+            FOR VALUES FROM (%L) TO (%L);
+        ', generate_partition_name(quarter_start), quarter_start, quarter_end);
+
+        start_date := quarter_end;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the function to create quarterly partitions
+SELECT create_events_partitions();
+[2024-05-01T19:34:44.196+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-01T19:34:44.218+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-01T19:34:44.253+0000] {sql.py:457} INFO - Running statement: --product_in_order partitions
+-- Create the default partition
+CREATE TABLE IF NOT EXISTS products_in_orders_default PARTITION OF DWH_Fact_Product_In_Order
+    DEFAULT;
+
+-- Create the future partition to cover all future values
+CREATE TABLE IF NOT EXISTS products_in_orders_future PARTITION OF DWH_Fact_Product_In_Order
+    FOR VALUES FROM (DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year') TO (MAXVALUE);
+
+
+-- Create a function to generate partition names
+CREATE OR REPLACE FUNCTION generate_partition_name(date) RETURNS TEXT AS $$
+BEGIN
+    RETURN 'products_in_orders_' || to_char($1, 'YYYY_q');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a function to create products in orders partitions automatically
+CREATE OR REPLACE FUNCTION create_products_in_orders_partitions() RETURNS VOID AS $$
+DECLARE
+    start_date DATE := DATE_TRUNC('year', CURRENT_DATE);
+    end_date DATE := DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year';
+    quarter_start DATE;
+    quarter_end DATE;
+BEGIN
+    WHILE start_date < end_date LOOP
+        quarter_start := start_date;
+        quarter_end := start_date + INTERVAL '3 months';
+
+        EXECUTE format('
+            CREATE TABLE IF NOT EXISTS %I PARTITION OF DWH_Fact_Product_In_Order
+            FOR VALUES FROM (%L) TO (%L);
+        ', generate_partition_name(quarter_start), quarter_start, quarter_end);
+
+        start_date := quarter_end;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the function to create products in orders partitions
+SELECT create_products_in_orders_partitions();
+
+
+--events partitions
+-- Create the default partition
+CREATE TABLE IF NOT EXISTS events_default PARTITION OF DWH_Fact_Events
+    DEFAULT;
+
+-- Create the future partition to cover all future values
+CREATE TABLE IF NOT EXISTS events_future PARTITION OF DWH_Fact_Events
+    FOR VALUES FROM (DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year') TO (MAXVALUE);
+
+
+-- Create a function to generate partition names
+CREATE OR REPLACE FUNCTION generate_partition_name(date) RETURNS TEXT AS $$
+BEGIN
+    RETURN 'events_' || to_char($1, 'YYYY_q');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a function to create events partitions automatically
+CREATE OR REPLACE FUNCTION create_events_partitions() RETURNS VOID AS $$
+DECLARE
+    start_date DATE := DATE_TRUNC('year', CURRENT_DATE);
+    end_date DATE := DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year';
+    quarter_start DATE;
+    quarter_end DATE;
+BEGIN
+    WHILE start_date < end_date LOOP
+        quarter_start := start_date;
+        quarter_end := start_date + INTERVAL '3 months';
+
+        EXECUTE format('
+            CREATE TABLE IF NOT EXISTS %I PARTITION OF DWH_Fact_Events
+            FOR VALUES FROM (%L) TO (%L);
+        ', generate_partition_name(quarter_start), quarter_start, quarter_end);
+
+        start_date := quarter_end;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the function to create quarterly partitions
+SELECT create_events_partitions();, parameters: None
+[2024-05-01T19:34:44.293+0000] {sql.py:466} INFO - Rows affected: 1
+[2024-05-01T19:34:44.296+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/providers/common/sql/hooks/sql.py:407: AirflowProviderDeprecationWarning: Call to deprecated method _make_common_data_structure. (The `_make_serializable` method is deprecated and support will be removed in a future version of the common.sql provider. Please update the DbApiHook's provider to a version based on common.sql >= 1.9.1.)
+  result = self._make_common_data_structure(handler(cur))
+
+[2024-05-01T19:34:44.366+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=create_partitions, execution_date=20240501T193324, start_date=20240501T193443, end_date=20240501T193444
+[2024-05-01T19:34:44.465+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-05-01T19:34:44.497+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-05-01T19:34:44.563+0000] {taskinstance.py:3309} INFO - 1 downstream tasks scheduled from follow-on schedule check

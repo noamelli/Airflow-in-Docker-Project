@@ -43,11 +43,18 @@ create_tables = PostgresOperator(
      sql='sql/create_tables.sql',
      dag=dag
  ) 
-    
+
 create_indexes = PostgresOperator(
      task_id='create_indexes',
      postgres_conn_id='postgres_localhost',
      sql='sql/create_indexes.sql',
+     dag=dag
+ ) 
+
+create_partitions = PostgresOperator(
+     task_id='create_partitions',
+     postgres_conn_id='postgres_localhost',
+     sql='sql/create_partitions.sql',
      dag=dag
  ) 
         
@@ -114,6 +121,7 @@ summary_tables = PostgresOperator(
         dag=dag
 )      
 
-#DAG FLOW
-create_tables >> create_indexes >> truncate_mrr >> insert_data_task >> dim_mrr2stg
+ 
+
+create_tables >> create_indexes >> create_partitions >> truncate_mrr >> insert_data_task >> dim_mrr2stg
 dim_mrr2stg >> dwh_backup >> dim_stg2dwh >> fact_mrr2stg >> referential_integrity >> fact_stg2dwh >> summary_tables

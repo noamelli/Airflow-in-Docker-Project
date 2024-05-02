@@ -1,0 +1,8 @@
+[2024-04-29T10:07:07.955+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.partitions manual__2024-04-29T10:03:57.667103+00:00 [queued]>
+[2024-04-29T10:07:08.186+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.partitions manual__2024-04-29T10:03:57.667103+00:00 [queued]>
+[2024-04-29T10:07:08.193+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-04-29T10:07:08.419+0000] {taskinstance.py:2214} INFO - Executing <Task(PythonOperator): partitions> on 2024-04-29 10:03:57.667103+00:00
+[2024-04-29T10:07:08.453+0000] {standard_task_runner.py:60} INFO - Started process 7703 to run task
+[2024-04-29T10:07:08.506+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'partitions', 'manual__2024-04-29T10:03:57.667103+00:00', '--job-id', '3060', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpbg3ysbn_']
+[2024-04-29T10:07:08.558+0000] {standard_task_runner.py:88} INFO - Job 3060: Subtask partitions
+[2024-04-29T10:07:09.132+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.partitions manual__2024-04-29T10:03:57.667103+00:00 [running]> on host d838c4eb4dcc

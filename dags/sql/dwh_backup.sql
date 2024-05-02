@@ -18,7 +18,7 @@ insert into DWH_Dim_Customers_Backup(DW_Customer_ID,Customer_ID,country,currency
 select * from DWH_Dim_Customers;
 
 insert into DWH_Fact_Product_In_Order_Backup(Order_ID,DW_product_ID,DW_Customer_ID,Order_Time,country, currency, exchange_to_USD,installation_date,media_source, supplier,
-                                             category,Quantity,total_price_before_discount,Total_Cost,incremental_discount, total_price_after_discount)
+                                             category,Quantity,total_price_before_discount,Total_Cost, total_price_after_discount)
 select * from DWH_Fact_Product_In_Order;
 
 insert into DWH_Fact_Events_backup(event_ID,event_description,event_time,DW_customer_ID,country,currency,exchange_to_USD,installation_date,media_source)

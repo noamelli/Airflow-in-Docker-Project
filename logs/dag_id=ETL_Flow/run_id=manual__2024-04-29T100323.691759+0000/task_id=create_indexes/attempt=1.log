@@ -1,0 +1,23 @@
+[2024-04-29T10:06:15.377+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.create_indexes manual__2024-04-29T10:03:23.691759+00:00 [queued]>
+[2024-04-29T10:06:15.438+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.create_indexes manual__2024-04-29T10:03:23.691759+00:00 [queued]>
+[2024-04-29T10:06:15.440+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-04-29T10:06:15.512+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): create_indexes> on 2024-04-29 10:03:23.691759+00:00
+[2024-04-29T10:06:15.534+0000] {standard_task_runner.py:60} INFO - Started process 7655 to run task
+[2024-04-29T10:06:15.562+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'create_indexes', 'manual__2024-04-29T10:03:23.691759+00:00', '--job-id', '3048', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmp4pfo57t3']
+[2024-04-29T10:06:15.570+0000] {standard_task_runner.py:88} INFO - Job 3048: Subtask create_indexes
+[2024-04-29T10:06:15.750+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.create_indexes manual__2024-04-29T10:03:23.691759+00:00 [running]> on host d838c4eb4dcc
+[2024-04-29T10:06:19.751+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='create_indexes' AIRFLOW_CTX_EXECUTION_DATE='2024-04-29T10:03:23.691759+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-04-29T10:03:23.691759+00:00'
+[2024-04-29T10:06:19.753+0000] {sql.py:276} INFO - Executing: CREATE INDEX IF NOT EXISTS idx_dw_customer_id_orders ON DWH_Fact_Product_In_Order(DW_customer_ID);
+CREATE INDEX IF NOT EXISTS idx_dw_customer_id_events ON DWH_Fact_Events(DW_customer_ID);
+ 
+[2024-04-29T10:06:19.783+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-29T10:06:19.808+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-04-29T10:06:19.860+0000] {sql.py:457} INFO - Running statement: CREATE INDEX IF NOT EXISTS idx_dw_customer_id_orders ON DWH_Fact_Product_In_Order(DW_customer_ID);
+CREATE INDEX IF NOT EXISTS idx_dw_customer_id_events ON DWH_Fact_Events(DW_customer_ID);
+ , parameters: None
+[2024-04-29T10:06:19.897+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/providers/common/sql/hooks/sql.py:407: AirflowProviderDeprecationWarning: Call to deprecated method _make_common_data_structure. (The `_make_serializable` method is deprecated and support will be removed in a future version of the common.sql provider. Please update the DbApiHook's provider to a version based on common.sql >= 1.9.1.)
+  result = self._make_common_data_structure(handler(cur))
+
+[2024-04-29T10:06:19.987+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=create_indexes, execution_date=20240429T100323, start_date=20240429T100615, end_date=20240429T100619
+[2024-04-29T10:06:20.176+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-04-29T10:06:20.332+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

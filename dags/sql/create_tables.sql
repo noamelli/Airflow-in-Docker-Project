@@ -1,6 +1,4 @@
-
-
-
+--MRR
 CREATE TABLE IF NOT EXISTS MRR_Dim_Customers(
 Customer_ID             varchar(50) null,
 country             varchar(50) null,
@@ -42,6 +40,8 @@ event_description	varchar(50)	not null,
 event_time	        varchar(50)	not null,
 customer_ID	        varchar(50)	not null
 );
+
+--STG
 
 CREATE TABLE IF NOT EXISTS  STG_Dim_Customers(
 Customer_ID	            int	    not null,
@@ -98,6 +98,7 @@ event_time	        timestamp	not null,
 customer_ID	        int	        not null
 );
 
+---DWH 
 
 CREATE TABLE IF NOT EXISTS DWH_Dim_Customers(
 DW_customer_ID	    serial	    not null,
@@ -137,33 +138,37 @@ PRIMARY KEY (DW_product_ID)
 );
 
 
-CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order(
-order_ID	                int	            not null,
-DW_product_ID	            int	            not null,
-DW_customer_ID	            int	            not null,
-order_time	                timestamp	    not null,
-country	                    varchar(50)	    not null,
-currency	                varchar(50)	    not null,
-exchange_to_USD	            decimal(3,2)    not null,
-installation_date	        date	        not null,
-media_source	            varchar(50)	    not null,
-supplier	                int	            not null,
-category	                int	            not null,
-quantity	                int	                null,
-total_price_before_discount  decimal(15,5)  not null,
-total_cost	                 decimal(15,5)  not null,
-incremental_discount         decimal(3,2)   not null,
-total_price_after_discount	 decimal(15,5)	not null,
-PRIMARY KEY (Order_ID, DW_product_ID)
-);
-
-
 CREATE TABLE IF NOT EXISTS DWH_Dim_Time(
 dateTime	timestamp	not null,
 date	    date	    not null,
-hour	    int	    not null,
+hour	    int	        not null,
 PRIMARY KEY (dateTime )
-);
+); 
+
+--DWH Fact tables - using partitions 
+
+--DWH_Fact_Product_In_Order
+CREATE TABLE IF NOT EXISTS DWH_Fact_Product_In_Order(
+order_ID                    int             not null,
+DW_product_ID               int             not null,
+DW_customer_ID              int             not null,
+order_time                  timestamp       not null,
+country                     varchar(50)     not null,
+currency                    varchar(50)     not null,
+exchange_to_USD             decimal(3,2)    not null,
+installation_date           date            not null,
+media_source                varchar(50)     not null,
+supplier                    int             not null,
+category                    int             not null,
+quantity                    int             null,
+total_price_before_discount decimal(15,5)   not null,
+total_cost                  decimal(15,5)   not null,
+total_price_after_discount  decimal(15,5)   not null,
+PRIMARY KEY (Order_ID, DW_product_ID, order_time) 
+)  
+PARTITION BY RANGE (order_time);
+
+
 
 CREATE TABLE IF NOT EXISTS DWH_Fact_Events(
 event_ID	        int	        not null,
@@ -175,8 +180,10 @@ currency	        varchar(50)	not null,
 exchange_to_USD	    decimal(3,2)not null,
 installation_date	date	    not null,
 media_source	    varchar(50)	not null,
-PRIMARY KEY (event_ID)
-);
+PRIMARY KEY (event_ID,event_time)
+)
+PARTITION BY RANGE (event_time);
+
 
 --Summary tables 
 
@@ -192,6 +199,7 @@ days_since_last_seen	int	    not null,
 engagement_status	    varchar(50)	not null,
 PRIMARY KEY (DW_customer_ID, date)
 );
+
 
 CREATE TABLE IF NOT EXISTS Daily_Purchase_Agg(
 DW_customer_ID	    int	            not null,
@@ -213,6 +221,7 @@ media_source	    varchar(50)	not null,
 count 	            int	        not null,
 PRIMARY KEY (event_description, event_date,country,media_source)
 );
+
 
 CREATE TABLE IF NOT EXISTS Monthly_Product_Rank(
 DW_product_ID	            serial	    not null,
@@ -277,8 +286,7 @@ supplier	            int	            not null,
 category	            int	            not null,
 quantity	            int	                null,
 total_price_before_discount  decimal(15,5)  not null,
-total_cost	            decimal(15,5)   not null,
-incremental_discount    decimal(3,2)    not null,
+total_cost	                 decimal(15,5)   not null,
 total_price_after_discount	 decimal(15,5)	not null,
 PRIMARY KEY (Order_ID, DW_product_ID)
 );

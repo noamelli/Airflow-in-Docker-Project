@@ -1,0 +1,5 @@
+[2024-04-30T16:29:27.836+0000] {processor.py:161} INFO - Started process (PID=49) to work on /opt/airflow/dags/operationalData/Events.xlsx
+[2024-04-30T16:29:27.841+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/operationalData/Events.xlsx for tasks to queue
+[2024-04-30T16:29:27.853+0000] {logging_mixin.py:188} INFO - [2024-04-30T16:29:27.852+0000] {dagbag.py:540} INFO - Filling up the DagBag from /opt/airflow/dags/operationalData/Events.xlsx
+[2024-04-30T16:29:27.924+0000] {processor.py:842} WARNING - No viable dags retrieved from /opt/airflow/dags/operationalData/Events.xlsx
+[2024-04-30T16:29:27.997+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/operationalData/Events.xlsx took 0.180 seconds

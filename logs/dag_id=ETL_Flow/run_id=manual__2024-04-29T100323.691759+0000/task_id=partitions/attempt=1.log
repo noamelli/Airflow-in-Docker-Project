@@ -1,0 +1,13 @@
+[2024-04-29T10:06:15.439+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.partitions manual__2024-04-29T10:03:23.691759+00:00 [queued]>
+[2024-04-29T10:06:15.525+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.partitions manual__2024-04-29T10:03:23.691759+00:00 [queued]>
+[2024-04-29T10:06:15.528+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-04-29T10:06:15.601+0000] {taskinstance.py:2214} INFO - Executing <Task(PythonOperator): partitions> on 2024-04-29 10:03:23.691759+00:00
+[2024-04-29T10:06:15.613+0000] {standard_task_runner.py:60} INFO - Started process 7656 to run task
+[2024-04-29T10:06:15.639+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'partitions', 'manual__2024-04-29T10:03:23.691759+00:00', '--job-id', '3050', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmp5ird9n1u']
+[2024-04-29T10:06:15.647+0000] {standard_task_runner.py:88} INFO - Job 3050: Subtask partitions
+[2024-04-29T10:06:15.824+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.partitions manual__2024-04-29T10:03:23.691759+00:00 [running]> on host d838c4eb4dcc
+[2024-04-29T10:06:20.179+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='partitions' AIRFLOW_CTX_EXECUTION_DATE='2024-04-29T10:03:23.691759+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-04-29T10:03:23.691759+00:00'
+[2024-04-29T10:06:20.183+0000] {python.py:202} INFO - Done. Returned value was: None
+[2024-04-29T10:06:20.244+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=partitions, execution_date=20240429T100323, start_date=20240429T100615, end_date=20240429T100620
+[2024-04-29T10:06:20.464+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-04-29T10:06:20.586+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check
