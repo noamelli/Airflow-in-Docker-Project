@@ -55,14 +55,15 @@ extract(year from generate_series),
 extract(quarter from generate_series),
 extract(month from generate_series),
 extract(day from generate_series)
-from generate_series('2024-01-01'::date, CURRENT_DATE::date, '1 day');
+from generate_series('2024-01-01'::date, CURRENT_DATE + interval '12 days', interval '1 day');
 
 
-insert into STG_Dim_Time(DateTime, Date, Hour)
+INSERT INTO STG_Dim_Time(DateTime, Date, Hour, Minute)
 SELECT
-  generate_series::TIMESTAMP,
-  DATE_TRUNC('hour', generate_series::TIMESTAMP),
-  EXTRACT(HOUR FROM generate_series::TIMESTAMP) AS hour
-FROM
-  GENERATE_SERIES('2024-01-01'::TIMESTAMP, CURRENT_DATE::TIMESTAMP, '1 hour');
+generate_series AS DateTime,
+date_trunc('hour', generate_series) AS Date,
+extract (HOUR FROM generate_series) AS Hour,
+extract(MINUTE FROM generate_series) AS Minute
+from
+  generate_series('2024-01-01'::TIMESTAMP, CURRENT_DATE + INTERVAL '12 days', INTERVAL '1 minute');
 

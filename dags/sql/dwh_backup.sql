@@ -24,17 +24,19 @@ select * from DWH_Fact_Product_In_Order;
 insert into DWH_Fact_Events_backup(event_ID,event_description,event_time,DW_customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
 select * from DWH_Fact_Events;
 
-insert into Daily_Customers_Transactions_backup(DW_customer_ID,date,country,media_source,installation_date,last_seen, days_since_installation,days_since_last_seen,engagement_status)
+insert into Daily_Customers_Transactions_backup(DW_customer_ID,date,country,media_source,installation_date,last_seen,last_order, days_since_installation,days_since_last_seen,days_since_last_order,engagement_status)
 select * from Daily_Customers_Transactions;
 
-insert into Daily_Purchase_Agg_backup(DW_customer_ID,order_date,country,supplier,category,media_source,total_cost,total_purchase_USD)
+insert into Daily_Purchase_Agg_backup(DW_customer_ID,order_date,country,supplier,category,media_source,total_cost,total_quantity,total_purchase_USD)
 select * from Daily_Purchase_Agg;
 
 insert into Daily_Event_Agg_backup(event_description,event_date,country,media_source,count)
 select * from Daily_Event_Agg;
 
-insert into Monthly_Product_Rank_backup(DW_product_ID,first_day_of_month,category,popularity_percent_rank,profitabilty_percent_rank)
+insert into Monthly_Product_Rank_backup(DW_product_ID,first_day_of_month,category,number_of_orders,total_quantity,net_profit,
+                                        orders_percent_rank,quantity_percent_rank,profit_percent_rank)
 select * from monthly_Product_Rank;
 
-insert into Monthly_Supplier_Rank_backup(category,first_day_of_month,supplier, popularity_percent_rank, profitabilty_percent_rank)
+insert into Monthly_Supplier_Rank_backup(category,first_day_of_month,supplier,number_of_orders,total_quantity,net_profit,
+                                         orders_percent_rank,quantity_percent_rank, profit_percent_rank)
 select * from monthly_Supplier_Rank;

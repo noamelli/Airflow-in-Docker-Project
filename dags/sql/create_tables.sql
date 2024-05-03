@@ -74,7 +74,8 @@ isValid	        varchar(10)	    not null
 CREATE TABLE IF NOT EXISTS STG_Dim_Time(
 dateTime	timestamp	not null,
 date	    date	    not null,
-hour	    int	    not null
+hour	    int	        not null,
+minute	    int	        not null
 );
 
 
@@ -142,6 +143,7 @@ CREATE TABLE IF NOT EXISTS DWH_Dim_Time(
 dateTime	timestamp	not null,
 date	    date	    not null,
 hour	    int	        not null,
+minute      int         not null,
 PRIMARY KEY (dateTime )
 ); 
 
@@ -194,8 +196,10 @@ country	                varchar(50)	not null,
 media_source	        varchar(50)	not null,
 installation_date       date        not null,
 last_seen 	            date	    not null,
-days_since_installation	int	    not null,
-days_since_last_seen	int	    not null,
+last_order	            date	        null,
+days_since_installation	int	        not null,
+days_since_last_seen	int	        not null,
+days_since_last_order	int	            null,
 engagement_status	    varchar(50)	not null,
 PRIMARY KEY (DW_customer_ID, date)
 );
@@ -209,6 +213,7 @@ supplier	        int	            not null,
 category	        int	            not null,
 media_source	    varchar(50)	    not null,
 total_cost	        decimal(15,5)	not null,
+total_quantity      int             not null, 
 total_purchase_USD	decimal(15,5)	not null,
 PRIMARY KEY (DW_customer_ID, order_date,supplier,category)
 );
@@ -227,18 +232,26 @@ CREATE TABLE IF NOT EXISTS Monthly_Product_Rank(
 DW_product_ID	            serial	    not null,
 first_day_of_month	        date 	    not null,
 category	                int	        not null,
-popularity_percent_rank 	int	        not null,
-profitabilty_percent_rank	int	        not null,
+number_of_orders            int	        not null,
+total_quantity              int	        not null,
+net_profit                  int	        not null,
+orders_percent_rank 	decimal(15,5)	not null,
+quantity_percent_rank	decimal(15,5)	not null,
+profit_percent_rank 	decimal(15,5)	not null,
 PRIMARY KEY (DW_product_ID, first_day_of_month)
 );
 
 CREATE TABLE IF NOT EXISTS Monthly_Supplier_Rank(
-category	                int	 not null,
-first_day_of_month	        date not null,
-supplier 	                int	 not null,
-popularity_percent_rank 	int	 not null,
-profitabilty_percent_rank	int	 not null,
-PRIMARY KEY (category, first_day_of_month,supplier)
+category	                int	        not null,
+first_day_of_month	        date        not null,
+supplier 	                int	        not null,
+number_of_orders            int	        not null,
+total_quantity              int	        not null,
+net_profit                  int	        not null,
+orders_percent_rank 	decimal(15,5)	not null,
+quantity_percent_rank	decimal(15,5)	not null,
+profit_percent_rank 	decimal(15,5)	not null,
+PRIMARY KEY (category, first_day_of_month, supplier)
 );
 
 --backup
@@ -311,9 +324,11 @@ country	                varchar(50)	not null,
 media_source	        varchar(50)	not null,
 installation_date       date        not null,
 last_seen 	            date	    not null,
+last_order	            date	        null,
 days_since_installation	int	        not null,
 days_since_last_seen	int	        not null,
-engagement_status	    varchar(50) not null,
+days_since_last_order	int	            null,
+engagement_status	    varchar(50)	not null,
 PRIMARY KEY (DW_customer_ID, date)
 );
 
@@ -325,6 +340,7 @@ supplier	        int	            not null,
 category	        int	            not null,
 media_source	    varchar(50)	    not null,
 total_cost	        decimal(15,5)	not null,
+total_quantity      int             not null, 
 total_purchase_USD	decimal(15,5)	not null,
 PRIMARY KEY (DW_customer_ID, order_date, supplier, category)
 );
@@ -338,20 +354,29 @@ count 	            int	        not null,
 PRIMARY KEY (event_description, event_date,country,media_source)
 );
 
+
 CREATE TABLE IF NOT EXISTS Monthly_Product_Rank_backup(
 DW_product_ID	            serial	    not null,
 first_day_of_month	        date 	    not null,
 category	                int	        not null,
-popularity_percent_rank 	int	        not null,
-profitabilty_percent_rank	int	        not null,
+number_of_orders            int	        not null,
+total_quantity              int	        not null,
+net_profit                  int	        not null,
+orders_percent_rank 	decimal(15,5)	not null,
+quantity_percent_rank	decimal(15,5)	not null,
+profit_percent_rank 	decimal(15,5)	not null,
 PRIMARY KEY (DW_product_ID, first_day_of_month)
 );
 
 CREATE TABLE IF NOT EXISTS Monthly_Supplier_Rank_backup(
-category	                int	 not null,
-first_day_of_month	        date not null,
-supplier 	                int	 not null,
-popularity_percent_rank 	int	 not null,
-profitabilty_percent_rank	int	 not null,
-PRIMARY KEY (category, first_day_of_month,supplier)
+category	                int	        not null,
+first_day_of_month	        date        not null,
+supplier 	                int	        not null,
+number_of_orders            int	        not null,
+total_quantity              int	        not null,
+net_profit                  int	        not null,
+orders_percent_rank 	decimal(15,5)	not null,
+quantity_percent_rank	decimal(15,5)	not null,
+profit_percent_rank 	decimal(15,5)	not null,
+PRIMARY KEY (category, first_day_of_month, supplier)
 );

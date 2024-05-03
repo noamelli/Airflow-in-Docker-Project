@@ -1,0 +1,63 @@
+[2024-05-02T15:24:34.545+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.referential_integrity scheduled__2024-04-30T21:11:00+00:00 [queued]>
+[2024-05-02T15:24:34.563+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.referential_integrity scheduled__2024-04-30T21:11:00+00:00 [queued]>
+[2024-05-02T15:24:34.564+0000] {taskinstance.py:2193} INFO - Starting attempt 2 of 7
+[2024-05-02T15:24:34.585+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): referential_integrity> on 2024-04-30 21:11:00+00:00
+[2024-05-02T15:24:34.593+0000] {standard_task_runner.py:60} INFO - Started process 1588 to run task
+[2024-05-02T15:24:34.598+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'referential_integrity', 'scheduled__2024-04-30T21:11:00+00:00', '--job-id', '3205', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmph4n7zmh8']
+[2024-05-02T15:24:34.601+0000] {standard_task_runner.py:88} INFO - Job 3205: Subtask referential_integrity
+[2024-05-02T15:24:34.675+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.referential_integrity scheduled__2024-04-30T21:11:00+00:00 [running]> on host 9100669c2df2
+[2024-05-02T15:24:35.113+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='referential_integrity' AIRFLOW_CTX_EXECUTION_DATE='2024-04-30T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-04-30T21:11:00+00:00'
+[2024-05-02T15:24:35.117+0000] {sql.py:276} INFO - Executing: update STG_Fact_Orders
+set Customer_ID=0
+where Customer_ID not in (
+                            select distinct Customer_ID 
+                            from DWH_Dim_Customers
+                        );
+
+update STG_Fact_Events
+set Customer_ID=0
+where Customer_ID not in (
+                            select distinct Customer_ID 
+                            from DWH_Dim_Customers
+                        );
+
+update STG_Fact_Details
+set Product_ID=0
+where Product_ID not in (
+                            select distinct Product_ID 
+                            from DWH_Dim_Products
+                        );
+
+[2024-05-02T15:24:35.138+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-02T15:24:35.153+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-02T15:24:35.189+0000] {sql.py:457} INFO - Running statement: update STG_Fact_Orders
+set Customer_ID=0
+where Customer_ID not in (
+                            select distinct Customer_ID 
+                            from DWH_Dim_Customers
+                        );
+
+update STG_Fact_Events
+set Customer_ID=0
+where Customer_ID not in (
+                            select distinct Customer_ID 
+                            from DWH_Dim_Customers
+                        );
+
+update STG_Fact_Details
+set Product_ID=0
+where Product_ID not in (
+                            select distinct Product_ID 
+                            from DWH_Dim_Products
+                        );
+, parameters: None
+[2024-05-02T15:24:35.210+0000] {sql.py:466} INFO - Rows affected: 0
+[2024-05-02T15:24:35.213+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/providers/common/sql/hooks/sql.py:407: AirflowProviderDeprecationWarning: Call to deprecated method _make_common_data_structure. (The `_make_serializable` method is deprecated and support will be removed in a future version of the common.sql provider. Please update the DbApiHook's provider to a version based on common.sql >= 1.9.1.)
+  result = self._make_common_data_structure(handler(cur))
+
+[2024-05-02T15:24:35.249+0000] {taskinstance.py:1149} INFO - Marking task as SUCCESS. dag_id=ETL_Flow, task_id=referential_integrity, execution_date=20240430T211100, start_date=20240502T152434, end_date=20240502T152435
+[2024-05-02T15:24:35.333+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2024-05-02T15:24:35.357+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/models/baseoperator.py:1201: AirflowProviderDeprecationWarning: Call to deprecated class PostgresOperator. (Please use `***.providers.common.sql.operators.sql.SQLExecuteQueryOperator`.Also, you can provide `hook_params={'schema': <database>}`.)
+  result = cls.__new__(cls)
+
+[2024-05-02T15:24:35.428+0000] {taskinstance.py:3309} INFO - 1 downstream tasks scheduled from follow-on schedule check

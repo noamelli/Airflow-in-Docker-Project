@@ -1,13 +1,18 @@
-truncate table DWH_Dim_Dates;
-truncate table DWH_Dim_Time;
-
 insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
 select * 
-from STG_Dim_Dates;
+from STG_Dim_Dates 
+where date not in (
+                    select distinct date 
+                    from DWH_Dim_Dates
+                  );
 
-insert into DWH_Dim_Time (DateTime,Date,Hour)
+insert into DWH_Dim_Time (DateTime,Date,Hour,Minute)
 select * 
-from STG_Dim_Time;
+from STG_Dim_Time
+where DateTime not in (
+                    select distinct DateTime 
+                    from DWH_Dim_Time
+                  );;
 
 --customers
 --insert all the new customers records 
