@@ -2723,3 +2723,23 @@
 [2024-05-06T18:54:51.005+0000] {logging_mixin.py:188} INFO - [2024-05-06T18:54:51.004+0000] {dagbag.py:540} INFO - Filling up the DagBag from /opt/airflow/dags/operationalData/Events.xlsx
 [2024-05-06T18:54:51.028+0000] {processor.py:842} WARNING - No viable dags retrieved from /opt/airflow/dags/operationalData/Events.xlsx
 [2024-05-06T18:54:51.062+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/operationalData/Events.xlsx took 0.068 seconds
+[2024-05-06T18:55:21.413+0000] {processor.py:161} INFO - Started process (PID=21027) to work on /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:55:21.416+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/operationalData/Events.xlsx for tasks to queue
+[2024-05-06T18:55:21.420+0000] {logging_mixin.py:188} INFO - [2024-05-06T18:55:21.419+0000] {dagbag.py:540} INFO - Filling up the DagBag from /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:55:21.445+0000] {processor.py:842} WARNING - No viable dags retrieved from /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:55:21.600+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/operationalData/Events.xlsx took 0.198 seconds
+[2024-05-06T18:55:52.183+0000] {processor.py:161} INFO - Started process (PID=21040) to work on /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:55:52.185+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/operationalData/Events.xlsx for tasks to queue
+[2024-05-06T18:55:52.187+0000] {logging_mixin.py:188} INFO - [2024-05-06T18:55:52.186+0000] {dagbag.py:540} INFO - Filling up the DagBag from /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:55:52.209+0000] {processor.py:842} WARNING - No viable dags retrieved from /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:55:52.246+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/operationalData/Events.xlsx took 0.071 seconds
+[2024-05-06T18:56:22.474+0000] {processor.py:161} INFO - Started process (PID=21053) to work on /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:56:22.480+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/operationalData/Events.xlsx for tasks to queue
+[2024-05-06T18:56:22.483+0000] {logging_mixin.py:188} INFO - [2024-05-06T18:56:22.482+0000] {dagbag.py:540} INFO - Filling up the DagBag from /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:56:22.522+0000] {processor.py:842} WARNING - No viable dags retrieved from /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:56:22.562+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/operationalData/Events.xlsx took 0.107 seconds
+[2024-05-06T18:56:53.813+0000] {processor.py:161} INFO - Started process (PID=21066) to work on /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:56:53.816+0000] {processor.py:830} INFO - Processing file /opt/airflow/dags/operationalData/Events.xlsx for tasks to queue
+[2024-05-06T18:56:53.820+0000] {logging_mixin.py:188} INFO - [2024-05-06T18:56:53.819+0000] {dagbag.py:540} INFO - Filling up the DagBag from /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:56:53.866+0000] {processor.py:842} WARNING - No viable dags retrieved from /opt/airflow/dags/operationalData/Events.xlsx
+[2024-05-06T18:56:53.907+0000] {processor.py:183} INFO - Processing /opt/airflow/dags/operationalData/Events.xlsx took 0.114 seconds
