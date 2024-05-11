@@ -1,0 +1,166 @@
+[2024-05-09T15:14:36.978+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-05-07T21:11:00+00:00 [queued]>
+[2024-05-09T15:14:36.997+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-05-07T21:11:00+00:00 [queued]>
+[2024-05-09T15:14:36.998+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 6
+[2024-05-09T15:14:37.033+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dim_stg2dwh> on 2024-05-07 21:11:00+00:00
+[2024-05-09T15:14:37.042+0000] {standard_task_runner.py:60} INFO - Started process 793 to run task
+[2024-05-09T15:14:37.049+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dim_stg2dwh', 'scheduled__2024-05-07T21:11:00+00:00', '--job-id', '3380', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpycwkpek9']
+[2024-05-09T15:14:37.053+0000] {standard_task_runner.py:88} INFO - Job 3380: Subtask dim_stg2dwh
+[2024-05-09T15:14:37.145+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-05-07T21:11:00+00:00 [running]> on host 518f7ecc027f
+[2024-05-09T15:14:38.008+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dim_stg2dwh' AIRFLOW_CTX_EXECUTION_DATE='2024-05-07T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-05-07T21:11:00+00:00'
+[2024-05-09T15:14:38.011+0000] {sql.py:276} INFO - Executing: insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates 
+where date not in (
+                    select distinct date 
+                    from DWH_Dim_Dates
+                  );
+
+insert into DWH_Dim_Time (DateTime,Date,Hour,Minute)
+select * 
+from STG_Dim_Time
+where DateTime not in (
+                    select distinct DateTime 
+                    from DWH_Dim_Time
+                  );;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select Customer_ID,country,currency,exchange_to_USD,installation_date,media_source
+from STG_Dim_Customers  
+where Customer_ID not in (
+                          select distinct Customer_ID
+                          from DWH_Dim_Customers
+                          );
+
+
+
+--update the valid until date of customers who moved to another country/their currency has changed 
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another country/their currency has changed                            
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select s.Customer_ID,s.country,s.currency,s.exchange_to_USD,s.installation_date,s.media_source
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD;
+
+--products
+
+-- insert all the new products records 
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost
+from STG_Dim_Products s 
+where Product_ID not in 
+                            (
+                              select distinct Product_ID
+                              from DWH_Dim_Products       
+                            );
+-- update the valid until date of products that their price/cost/supplier have changed
+update DWH_Dim_Products
+set Valid_Until=current_date
+where dw_product_id in (
+                            select dw_product_id 
+                            from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+                            where (s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier) 
+                            and d.Valid_Until is null
+                          );
+
+
+
+-- insert records of products that their price/cost/supplier have changed                             
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select s.Product_ID,s.Product_Name,s.Supplier,s.Category,s.Unit_Price,s.Unit_Cost
+from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier;
+
+[2024-05-09T15:14:38.034+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-09T15:14:38.053+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-09T15:14:38.076+0000] {sql.py:457} INFO - Running statement: insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates 
+where date not in (
+                    select distinct date 
+                    from DWH_Dim_Dates
+                  );
+
+insert into DWH_Dim_Time (DateTime,Date,Hour,Minute)
+select * 
+from STG_Dim_Time
+where DateTime not in (
+                    select distinct DateTime 
+                    from DWH_Dim_Time
+                  );;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select Customer_ID,country,currency,exchange_to_USD,installation_date,media_source
+from STG_Dim_Customers  
+where Customer_ID not in (
+                          select distinct Customer_ID
+                          from DWH_Dim_Customers
+                          );
+
+
+
+--update the valid until date of customers who moved to another country/their currency has changed 
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another country/their currency has changed                            
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select s.Customer_ID,s.country,s.currency,s.exchange_to_USD,s.installation_date,s.media_source
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD;
+
+--products
+
+-- insert all the new products records 
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost
+from STG_Dim_Products s 
+where Product_ID not in 
+                            (
+                              select distinct Product_ID
+                              from DWH_Dim_Products       
+                            );
+-- update the valid until date of products that their price/cost/supplier have changed
+update DWH_Dim_Products
+set Valid_Until=current_date
+where dw_product_id in (
+                            select dw_product_id 
+                            from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+                            where (s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier) 
+                            and d.Valid_Until is null
+                          );
+
+
+
+-- insert records of products that their price/cost/supplier have changed                             
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select s.Product_ID,s.Product_Name,s.Supplier,s.Category,s.Unit_Price,s.Unit_Cost
+from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier;
+, parameters: None
+[2024-05-09T15:30:30.481+0000] {local_task_job_runner.py:211} ERROR - Heartbeat time limit exceeded!
+[2024-05-09T15:30:31.388+0000] {process_utils.py:131} INFO - Sending 15 to group 793. PIDs of all processes in the group: [793]
+[2024-05-09T15:30:31.429+0000] {process_utils.py:86} INFO - Sending the signal 15 to group 793
+[2024-05-09T15:31:31.510+0000] {process_utils.py:149} WARNING - process psutil.Process(pid=793, name='airflow task ru', status='sleeping', started='15:14:36') did not respond to SIGTERM. Trying SIGKILL
+[2024-05-09T15:31:31.697+0000] {process_utils.py:86} INFO - Sending the signal 9 to group 793
+[2024-05-09T15:31:31.798+0000] {process_utils.py:79} INFO - Process psutil.Process(pid=793, name='airflow task ru', status='terminated', exitcode=<Negsignal.SIGKILL: -9>, started='15:14:36') (793) terminated with exit code -9
+[2024-05-09T15:31:31.802+0000] {standard_task_runner.py:175} ERROR - Job 3380 was killed before it finished (likely due to running out of memory)
