@@ -1,0 +1,411 @@
+[2024-05-19T15:48:01.984+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-05-14T21:11:00+00:00 [queued]>
+[2024-05-19T15:48:02.056+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-05-14T21:11:00+00:00 [queued]>
+[2024-05-19T15:48:02.058+0000] {taskinstance.py:2193} INFO - Starting attempt 6 of 6
+[2024-05-19T15:48:02.122+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dim_stg2dwh> on 2024-05-14 21:11:00+00:00
+[2024-05-19T15:48:02.134+0000] {standard_task_runner.py:60} INFO - Started process 16431 to run task
+[2024-05-19T15:48:02.144+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dim_stg2dwh', 'scheduled__2024-05-14T21:11:00+00:00', '--job-id', '3509', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmplb30lm44']
+[2024-05-19T15:48:02.150+0000] {standard_task_runner.py:88} INFO - Job 3509: Subtask dim_stg2dwh
+[2024-05-19T15:48:02.329+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-05-14T21:11:00+00:00 [running]> on host 518f7ecc027f
+[2024-05-19T15:48:07.475+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dim_stg2dwh' AIRFLOW_CTX_EXECUTION_DATE='2024-05-14T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='6' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-05-14T21:11:00+00:00'
+[2024-05-19T15:48:07.478+0000] {sql.py:276} INFO - Executing: insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates 
+where date not in (
+                    select distinct date 
+                    from DWH_Dim_Dates
+                  );
+
+insert into DWH_Dim_Time (DateTime,Date,Hour,Minute)
+select * 
+from STG_Dim_Time
+where DateTime not in (
+                    select distinct DateTime 
+                    from DWH_Dim_Time
+                  );;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select Customer_ID,country,currency,exchange_to_USD,installation_date,media_source
+from STG_Dim_Customers  
+where Customer_ID not in (
+                          select distinct Customer_ID
+                          from DWH_Dim_Customers
+                          );
+
+
+
+--update the valid until date of customers who moved to another country/their currency has changed 
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another country/their currency has changed                            
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select s.Customer_ID,s.country,s.currency,s.exchange_to_USD,s.installation_date,s.media_source
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD;
+
+--products
+
+-- insert all the new products records 
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost
+from STG_Dim_Products s 
+where Product_ID not in 
+                            (
+                              select distinct Product_ID
+                              from DWH_Dim_Products       
+                            );
+-- update the valid until date of products that their price/cost/supplier have changed
+update DWH_Dim_Products
+set Valid_Until=current_date
+where dw_product_id in (
+                            select dw_product_id 
+                            from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+                            where (s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier) 
+                            and d.Valid_Until is null
+                          );
+
+
+
+-- insert records of products that their price/cost/supplier have changed                             
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select s.Product_ID,s.Product_Name,s.Supplier,s.Category,s.Unit_Price,s.Unit_Cost
+from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier;
+
+[2024-05-19T15:48:07.516+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-19T15:48:07.546+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-19T15:48:07.736+0000] {sql.py:457} INFO - Running statement: insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates 
+where date not in (
+                    select distinct date 
+                    from DWH_Dim_Dates
+                  );
+
+insert into DWH_Dim_Time (DateTime,Date,Hour,Minute)
+select * 
+from STG_Dim_Time
+where DateTime not in (
+                    select distinct DateTime 
+                    from DWH_Dim_Time
+                  );;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select Customer_ID,country,currency,exchange_to_USD,installation_date,media_source
+from STG_Dim_Customers  
+where Customer_ID not in (
+                          select distinct Customer_ID
+                          from DWH_Dim_Customers
+                          );
+
+
+
+--update the valid until date of customers who moved to another country/their currency has changed 
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another country/their currency has changed                            
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select s.Customer_ID,s.country,s.currency,s.exchange_to_USD,s.installation_date,s.media_source
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD;
+
+--products
+
+-- insert all the new products records 
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost
+from STG_Dim_Products s 
+where Product_ID not in 
+                            (
+                              select distinct Product_ID
+                              from DWH_Dim_Products       
+                            );
+-- update the valid until date of products that their price/cost/supplier have changed
+update DWH_Dim_Products
+set Valid_Until=current_date
+where dw_product_id in (
+                            select dw_product_id 
+                            from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+                            where (s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier) 
+                            and d.Valid_Until is null
+                          );
+
+
+
+-- insert records of products that their price/cost/supplier have changed                             
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select s.Product_ID,s.Product_Name,s.Supplier,s.Category,s.Unit_Price,s.Unit_Cost
+from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier;
+, parameters: None
+[2024-05-19T16:04:56.995+0000] {job.py:213} ERROR - Job heartbeat got an exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/jobs/job.py", line 187, in heartbeat
+    self._merge_from(Job._fetch_from_db(self, session))
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/api_internal/internal_api_call.py", line 114, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/utils/session.py", line 76, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/jobs/job.py", line 308, in _fetch_from_db
+    session.merge(job)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 3056, in merge
+    return self._merge(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 3136, in _merge
+    merged = self.get(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 2853, in get
+    return self._get_impl(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 2975, in _get_impl
+    return db_load_fn(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/loading.py", line 530, in load_on_pk_identity
+    session.execute(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1716, in execute
+    conn = self._connection_for_bind(bind)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1555, in _connection_for_bind
+    return self._transaction._connection_for_bind(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 750, in _connection_for_bind
+    conn = bind.connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/future/engine.py", line 412, in connect
+    return super(Engine, self).connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3325, in connect
+    return self._connection_cls(self, close_with_result=close_with_result)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+    else engine.raw_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3404, in raw_connection
+    return self._wrap_pool_connect(self.pool.connect, _connection)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3374, in _wrap_pool_connect
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 2208, in _handle_dbapi_exception_noconnection
+    util.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not translate host name "postgres" to address: Temporary failure in name resolution
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+[2024-05-19T16:04:57.448+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:10:40.804+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:11:36.569+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:12:32.779+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:13:21.779+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:20:14.484+0000] {job.py:216} ERROR - Job heartbeat failed with error. Scheduler may go into unhealthy state
+[2024-05-19T16:23:38.986+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:24:09.659+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:26:25.012+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:26:48.895+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:27:22.019+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:47:19.314+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:49:51.386+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:50:10.154+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:54:17.857+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T16:58:49.944+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:02:14.128+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:02:31.516+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:34:42.744+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:37:35.095+0000] {job.py:216} ERROR - Job heartbeat failed with error. Scheduler may go into unhealthy state
+[2024-05-19T17:39:26.551+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:40:01.939+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:40:58.143+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:41:26.649+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:41:56.996+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:42:16.565+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:44:38.265+0000] {job.py:216} ERROR - Job heartbeat failed with error. Scheduler may go into unhealthy state
+[2024-05-19T17:51:17.010+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:54:24.532+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:54:40.517+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T17:55:05.600+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-19T18:00:25.347+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T05:53:21.936+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T05:53:56.164+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T05:57:26.804+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T05:58:17.452+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T05:59:00.352+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T05:59:15.429+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T05:59:31.486+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:02:34.699+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:05:28.165+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:05:46.870+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:06:05.777+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:12:48.372+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:13:09.341+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:13:27.868+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:14:00.616+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:14:31.441+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:14:59.284+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:16:51.509+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:17:18.743+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:17:33.988+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:18:36.140+0000] {job.py:216} ERROR - Job heartbeat failed with error. Scheduler may go into unhealthy state
+[2024-05-20T06:19:28.329+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:19:45.858+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:20:18.422+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:20:34.181+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:21:05.965+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:21:21.590+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:21:58.679+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:25:18.344+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:25:34.657+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:25:57.762+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:28:34.921+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:29:16.012+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:32:00.932+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:32:20.446+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:32:36.816+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:35:17.514+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:35:38.966+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:38:44.413+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:38:59.499+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:40:12.165+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:40:32.789+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:41:11.461+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:41:41.650+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:42:05.397+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:44:43.007+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:44:58.114+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:48:27.645+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:50:31.920+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:50:51.704+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:51:08.556+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:53:58.534+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:54:20.995+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:54:43.449+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:57:02.914+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:57:37.019+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T06:59:15.939+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:01:43.355+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:02:31.938+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:02:58.779+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:03:34.949+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:05:59.540+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:07:11.222+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:08:13.128+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:10:30.467+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:10:48.468+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:11:08.221+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:14:00.435+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:14:19.734+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:14:44.016+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:17:08.880+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:17:32.389+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:17:55.467+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:20:34.082+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:20:58.540+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:21:34.304+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:24:17.901+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:24:37.231+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:25:03.258+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:28:26.328+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:30:36.551+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:31:50.204+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:32:05.603+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:35:08.080+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:36:09.675+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:42:48.796+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:46:00.468+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:46:22.269+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:46:47.924+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:47:33.701+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:50:34.944+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:51:36.277+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:55:27.771+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T07:55:48.509+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:02:10.124+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:05:51.952+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:07:48.023+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:08:43.077+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:12:00.230+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:12:26.864+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:14:42.470+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:15:00.885+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:15:16.254+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:15:37.010+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:18:28.845+0000] {job.py:216} ERROR - Job heartbeat failed with error. Scheduler may go into unhealthy state
+[2024-05-20T08:18:44.913+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:19:36.756+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:22:35.248+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T08:25:57.380+0000] {local_task_job_runner.py:211} ERROR - Heartbeat time limit exceeded!
+[2024-05-20T08:26:41.244+0000] {process_utils.py:131} INFO - Sending 15 to group 16431. PIDs of all processes in the group: [16431]
+[2024-05-20T08:26:48.512+0000] {process_utils.py:86} INFO - Sending the signal 15 to group 16431
+[2024-05-20T08:27:50.107+0000] {process_utils.py:149} WARNING - process psutil.Process(pid=16431, name='airflow task ru', status='sleeping', started='15:48:01') did not respond to SIGTERM. Trying SIGKILL
+[2024-05-20T08:27:50.212+0000] {process_utils.py:86} INFO - Sending the signal 9 to group 16431
+[2024-05-20T08:27:50.275+0000] {process_utils.py:79} INFO - Process psutil.Process(pid=16431, name='airflow task ru', status='terminated', exitcode=<Negsignal.SIGKILL: -9>, started='15:48:01') (16431) terminated with exit code -9
+[2024-05-20T08:27:50.282+0000] {standard_task_runner.py:175} ERROR - Job 3509 was killed before it finished (likely due to running out of memory)

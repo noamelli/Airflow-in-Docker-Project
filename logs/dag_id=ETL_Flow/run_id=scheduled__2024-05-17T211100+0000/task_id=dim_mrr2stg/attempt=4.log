@@ -1,0 +1,264 @@
+[2024-05-20T08:39:26.484+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-05-17T21:11:00+00:00 [queued]>
+[2024-05-20T08:39:26.522+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-05-17T21:11:00+00:00 [queued]>
+[2024-05-20T08:39:26.523+0000] {taskinstance.py:2193} INFO - Starting attempt 4 of 6
+[2024-05-20T08:39:26.560+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dim_mrr2stg> on 2024-05-17 21:11:00+00:00
+[2024-05-20T08:39:26.578+0000] {standard_task_runner.py:60} INFO - Started process 18679 to run task
+[2024-05-20T08:39:26.617+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dim_mrr2stg', 'scheduled__2024-05-17T21:11:00+00:00', '--job-id', '3552', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpnbwqo_x4']
+[2024-05-20T08:39:26.716+0000] {standard_task_runner.py:88} INFO - Job 3552: Subtask dim_mrr2stg
+[2024-05-20T08:39:27.842+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dim_mrr2stg scheduled__2024-05-17T21:11:00+00:00 [running]> on host 518f7ecc027f
+[2024-05-20T08:39:36.935+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dim_mrr2stg' AIRFLOW_CTX_EXECUTION_DATE='2024-05-17T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='4' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-05-17T21:11:00+00:00'
+[2024-05-20T08:39:36.938+0000] {sql.py:276} INFO - Executing: truncate table STG_Dim_Customers;
+truncate table STG_Dim_Products;
+truncate table STG_Dim_Dates;
+truncate table STG_Dim_Time;
+
+insert into STG_Dim_Products(Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,isValid)
+select 
+cast(Product_ID as integer),
+case when Product_Name is null then 'missing' else Product_Name end,
+case when Supplier similar to '[0-9]+' then cast(Supplier as integer) else 0 end,
+case when Category similar to '[0-9]+' then cast(Category as integer) else 0 end,
+case when Unit_Price similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Price as decimal(15,5))>=0
+     then cast(Unit_Price as decimal(15,5)) else null end,
+case when Unit_Cost similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Cost as decimal(15,5))>=0
+     then cast(Unit_Cost as decimal(15,5)) else null end,
+isValid
+from MRR_Dim_Products
+where isValid='valid';
+
+insert into STG_Dim_Customers(Customer_ID,country,currency,exchange_to_USD,installation_date,media_source,isValid)
+select
+cast(Customer_ID as integer),
+case when country is null then 'missing' else country end,
+case when currency is null then 'missing' else currency end,
+case when exchange_to_USD similar to '[0-9]+(\.[0-9]+)?' and cast(exchange_to_USD as decimal(3,2))>=0
+     then cast(exchange_to_USD as decimal(3,2)) else null end,
+case
+    -- YYYY-MM-DD
+    when installation_date ~ '^\d{4}-\d{2}-\d{2}$' then to_date(installation_date, 'YYYY-MM-DD')
+    -- DD-MM-YYYY
+    when installation_date ~ '^\d{2}-\d{2}-\d{4}$' then to_date(installation_date, 'DD-MM-YYYY')
+    -- YYYY.MM.DD
+    when installation_date ~ '^\d{4}.\d{2}.\d{2}$' then to_date(installation_date, 'YYYY.MM.DD')
+    -- DD.MM.YYYY
+    when installation_date ~ '^\d{2}.\d{2}.\d{4}$' then to_date(installation_date, 'DD.MM.YYYY')
+    -- DD/MM/YYYY
+    when installation_date ~ '^\d{2}/\d{2}/\d{4}$' then to_date(installation_date, 'DD/MM/YYYY')
+    -- YYYY/MM/DD
+    when installation_date ~ '^\d{4}/\d{2}/\d{2}$' then to_date(installation_date, 'YYYY/MM/DD')
+    -- DD\MM\YYYY
+    when installation_date ~ '^\d{2}\\d{2}\\d{4}$' then to_date(installation_date, 'DD\MM\YYYY')
+    -- YYYY\MM\DD
+    when installation_date ~ '^\d{4}\\d{2}\\d{2}$' then to_date(installation_date, 'YYYY\MM\DD')
+    else '1900-01-01' end,
+    media_source,
+    isValid 
+from MRR_Dim_Customers
+where isValid='valid';
+
+
+insert into STG_Dim_Dates(Date,Year,Quarter,Month,Day)
+select
+generate_series::date,
+extract(year from generate_series),
+extract(quarter from generate_series),
+extract(month from generate_series),
+extract(day from generate_series)
+from generate_series('2024-01-01'::date, CURRENT_DATE + interval '12 days', interval '1 day');
+
+
+INSERT INTO STG_Dim_Time(DateTime, Date, Hour, Minute)
+SELECT
+generate_series AS DateTime,
+date_trunc('hour', generate_series) AS Date,
+extract (HOUR FROM generate_series) AS Hour,
+extract(MINUTE FROM generate_series) AS Minute
+from
+  generate_series('2024-01-01'::TIMESTAMP, CURRENT_DATE + INTERVAL '12 days', INTERVAL '1 minute');
+
+[2024-05-20T08:39:36.966+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-20T08:39:37.036+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-20T08:39:37.333+0000] {sql.py:457} INFO - Running statement: truncate table STG_Dim_Customers;
+truncate table STG_Dim_Products;
+truncate table STG_Dim_Dates;
+truncate table STG_Dim_Time;
+
+insert into STG_Dim_Products(Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost,isValid)
+select 
+cast(Product_ID as integer),
+case when Product_Name is null then 'missing' else Product_Name end,
+case when Supplier similar to '[0-9]+' then cast(Supplier as integer) else 0 end,
+case when Category similar to '[0-9]+' then cast(Category as integer) else 0 end,
+case when Unit_Price similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Price as decimal(15,5))>=0
+     then cast(Unit_Price as decimal(15,5)) else null end,
+case when Unit_Cost similar to '[0-9]+(\.[0-9]+)?' and cast(Unit_Cost as decimal(15,5))>=0
+     then cast(Unit_Cost as decimal(15,5)) else null end,
+isValid
+from MRR_Dim_Products
+where isValid='valid';
+
+insert into STG_Dim_Customers(Customer_ID,country,currency,exchange_to_USD,installation_date,media_source,isValid)
+select
+cast(Customer_ID as integer),
+case when country is null then 'missing' else country end,
+case when currency is null then 'missing' else currency end,
+case when exchange_to_USD similar to '[0-9]+(\.[0-9]+)?' and cast(exchange_to_USD as decimal(3,2))>=0
+     then cast(exchange_to_USD as decimal(3,2)) else null end,
+case
+    -- YYYY-MM-DD
+    when installation_date ~ '^\d{4}-\d{2}-\d{2}$' then to_date(installation_date, 'YYYY-MM-DD')
+    -- DD-MM-YYYY
+    when installation_date ~ '^\d{2}-\d{2}-\d{4}$' then to_date(installation_date, 'DD-MM-YYYY')
+    -- YYYY.MM.DD
+    when installation_date ~ '^\d{4}.\d{2}.\d{2}$' then to_date(installation_date, 'YYYY.MM.DD')
+    -- DD.MM.YYYY
+    when installation_date ~ '^\d{2}.\d{2}.\d{4}$' then to_date(installation_date, 'DD.MM.YYYY')
+    -- DD/MM/YYYY
+    when installation_date ~ '^\d{2}/\d{2}/\d{4}$' then to_date(installation_date, 'DD/MM/YYYY')
+    -- YYYY/MM/DD
+    when installation_date ~ '^\d{4}/\d{2}/\d{2}$' then to_date(installation_date, 'YYYY/MM/DD')
+    -- DD\MM\YYYY
+    when installation_date ~ '^\d{2}\\d{2}\\d{4}$' then to_date(installation_date, 'DD\MM\YYYY')
+    -- YYYY\MM\DD
+    when installation_date ~ '^\d{4}\\d{2}\\d{2}$' then to_date(installation_date, 'YYYY\MM\DD')
+    else '1900-01-01' end,
+    media_source,
+    isValid 
+from MRR_Dim_Customers
+where isValid='valid';
+
+
+insert into STG_Dim_Dates(Date,Year,Quarter,Month,Day)
+select
+generate_series::date,
+extract(year from generate_series),
+extract(quarter from generate_series),
+extract(month from generate_series),
+extract(day from generate_series)
+from generate_series('2024-01-01'::date, CURRENT_DATE + interval '12 days', interval '1 day');
+
+
+INSERT INTO STG_Dim_Time(DateTime, Date, Hour, Minute)
+SELECT
+generate_series AS DateTime,
+date_trunc('hour', generate_series) AS Date,
+extract (HOUR FROM generate_series) AS Hour,
+extract(MINUTE FROM generate_series) AS Minute
+from
+  generate_series('2024-01-01'::TIMESTAMP, CURRENT_DATE + INTERVAL '12 days', INTERVAL '1 minute');
+, parameters: None
+[2024-05-20T10:37:02.572+0000] {job.py:213} ERROR - Job heartbeat got an exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/jobs/job.py", line 187, in heartbeat
+    self._merge_from(Job._fetch_from_db(self, session))
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/api_internal/internal_api_call.py", line 114, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/utils/session.py", line 76, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/jobs/job.py", line 308, in _fetch_from_db
+    session.merge(job)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 3056, in merge
+    return self._merge(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 3136, in _merge
+    merged = self.get(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 2853, in get
+    return self._get_impl(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 2975, in _get_impl
+    return db_load_fn(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/loading.py", line 530, in load_on_pk_identity
+    session.execute(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1716, in execute
+    conn = self._connection_for_bind(bind)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1555, in _connection_for_bind
+    return self._transaction._connection_for_bind(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 750, in _connection_for_bind
+    conn = bind.connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/future/engine.py", line 412, in connect
+    return super(Engine, self).connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3325, in connect
+    return self._connection_cls(self, close_with_result=close_with_result)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+    else engine.raw_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3404, in raw_connection
+    return self._wrap_pool_connect(self.pool.connect, _connection)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3374, in _wrap_pool_connect
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 2208, in _handle_dbapi_exception_noconnection
+    util.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not translate host name "postgres" to address: Temporary failure in name resolution
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+[2024-05-20T10:37:02.990+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T10:38:24.313+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T10:45:07.827+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T11:01:27.582+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T11:02:18.263+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T11:44:18.185+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T11:44:33.427+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T11:55:50.910+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T11:59:50.620+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-20T12:00:13.961+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state

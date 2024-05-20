@@ -1,0 +1,276 @@
+[2024-05-17T17:23:47.792+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-05-12T21:11:00+00:00 [queued]>
+[2024-05-17T17:23:47.857+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-05-12T21:11:00+00:00 [queued]>
+[2024-05-17T17:23:47.859+0000] {taskinstance.py:2193} INFO - Starting attempt 5 of 6
+[2024-05-17T17:23:47.934+0000] {taskinstance.py:2214} INFO - Executing <Task(PostgresOperator): dim_stg2dwh> on 2024-05-12 21:11:00+00:00
+[2024-05-17T17:23:47.967+0000] {standard_task_runner.py:60} INFO - Started process 15367 to run task
+[2024-05-17T17:23:47.995+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'ETL_Flow', 'dim_stg2dwh', 'scheduled__2024-05-12T21:11:00+00:00', '--job-id', '3497', '--raw', '--subdir', 'DAGS_FOLDER/ETL.py', '--cfg-path', '/tmp/tmpw9b0aqaz']
+[2024-05-17T17:23:48.009+0000] {standard_task_runner.py:88} INFO - Job 3497: Subtask dim_stg2dwh
+[2024-05-17T17:23:48.319+0000] {task_command.py:423} INFO - Running <TaskInstance: ETL_Flow.dim_stg2dwh scheduled__2024-05-12T21:11:00+00:00 [running]> on host 518f7ecc027f
+[2024-05-17T17:24:00.957+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='coder2j' AIRFLOW_CTX_DAG_ID='ETL_Flow' AIRFLOW_CTX_TASK_ID='dim_stg2dwh' AIRFLOW_CTX_EXECUTION_DATE='2024-05-12T21:11:00+00:00' AIRFLOW_CTX_TRY_NUMBER='5' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-05-12T21:11:00+00:00'
+[2024-05-17T17:24:00.970+0000] {sql.py:276} INFO - Executing: insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates 
+where date not in (
+                    select distinct date 
+                    from DWH_Dim_Dates
+                  );
+
+insert into DWH_Dim_Time (DateTime,Date,Hour,Minute)
+select * 
+from STG_Dim_Time
+where DateTime not in (
+                    select distinct DateTime 
+                    from DWH_Dim_Time
+                  );;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select Customer_ID,country,currency,exchange_to_USD,installation_date,media_source
+from STG_Dim_Customers  
+where Customer_ID not in (
+                          select distinct Customer_ID
+                          from DWH_Dim_Customers
+                          );
+
+
+
+--update the valid until date of customers who moved to another country/their currency has changed 
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another country/their currency has changed                            
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select s.Customer_ID,s.country,s.currency,s.exchange_to_USD,s.installation_date,s.media_source
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD;
+
+--products
+
+-- insert all the new products records 
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost
+from STG_Dim_Products s 
+where Product_ID not in 
+                            (
+                              select distinct Product_ID
+                              from DWH_Dim_Products       
+                            );
+-- update the valid until date of products that their price/cost/supplier have changed
+update DWH_Dim_Products
+set Valid_Until=current_date
+where dw_product_id in (
+                            select dw_product_id 
+                            from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+                            where (s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier) 
+                            and d.Valid_Until is null
+                          );
+
+
+
+-- insert records of products that their price/cost/supplier have changed                             
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select s.Product_ID,s.Product_Name,s.Supplier,s.Category,s.Unit_Price,s.Unit_Cost
+from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier;
+
+[2024-05-17T17:24:01.072+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-17T17:24:01.128+0000] {base.py:83} INFO - Using connection ID 'postgres_localhost' for task execution.
+[2024-05-17T17:24:01.380+0000] {sql.py:457} INFO - Running statement: insert into DWH_Dim_Dates (Date,Year,Quarter,Month,Day)
+select * 
+from STG_Dim_Dates 
+where date not in (
+                    select distinct date 
+                    from DWH_Dim_Dates
+                  );
+
+insert into DWH_Dim_Time (DateTime,Date,Hour,Minute)
+select * 
+from STG_Dim_Time
+where DateTime not in (
+                    select distinct DateTime 
+                    from DWH_Dim_Time
+                  );;
+
+--customers
+--insert all the new customers records 
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select Customer_ID,country,currency,exchange_to_USD,installation_date,media_source
+from STG_Dim_Customers  
+where Customer_ID not in (
+                          select distinct Customer_ID
+                          from DWH_Dim_Customers
+                          );
+
+
+
+--update the valid until date of customers who moved to another country/their currency has changed 
+
+update DWH_Dim_Customers
+set Valid_Until=current_date
+where DW_Customer_ID in (
+                            select DW_Customer_ID 
+                            from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID = s.Customer_ID
+                            where (s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD) and d.Valid_Until is null
+                          );
+
+
+--insert records of customers who moved to another country/their currency has changed                            
+insert into DWH_Dim_Customers (Customer_ID,country,currency,exchange_to_USD,installation_date,media_source)
+select s.Customer_ID,s.country,s.currency,s.exchange_to_USD,s.installation_date,s.media_source
+from STG_Dim_Customers s inner join DWH_Dim_Customers d on d.Customer_ID=s.Customer_ID
+where s.currency <> d.currency or s.Country <> d.Country or s.exchange_to_USD <> d.exchange_to_USD;
+
+--products
+
+-- insert all the new products records 
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost
+from STG_Dim_Products s 
+where Product_ID not in 
+                            (
+                              select distinct Product_ID
+                              from DWH_Dim_Products       
+                            );
+-- update the valid until date of products that their price/cost/supplier have changed
+update DWH_Dim_Products
+set Valid_Until=current_date
+where dw_product_id in (
+                            select dw_product_id 
+                            from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID = s.Product_ID
+                            where (s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier) 
+                            and d.Valid_Until is null
+                          );
+
+
+
+-- insert records of products that their price/cost/supplier have changed                             
+insert into DWH_Dim_Products (Product_ID,Product_Name,Supplier,Category,Unit_Price,Unit_Cost)
+select s.Product_ID,s.Product_Name,s.Supplier,s.Category,s.Unit_Price,s.Unit_Cost
+from STG_Dim_Products s inner join DWH_Dim_Products d on d.Product_ID=s.Product_ID
+where s.Unit_Cost <> d.Unit_Cost or s.Unit_Price <> d.Unit_Price or s.Supplier <> d.Supplier;
+, parameters: None
+[2024-05-18T15:22:52.162+0000] {job.py:213} ERROR - Job heartbeat got an exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "postgres" to address: Temporary failure in name resolution
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/jobs/job.py", line 187, in heartbeat
+    self._merge_from(Job._fetch_from_db(self, session))
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/api_internal/internal_api_call.py", line 114, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/utils/session.py", line 76, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/jobs/job.py", line 308, in _fetch_from_db
+    session.merge(job)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 3056, in merge
+    return self._merge(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 3136, in _merge
+    merged = self.get(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 2853, in get
+    return self._get_impl(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 2975, in _get_impl
+    return db_load_fn(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/loading.py", line 530, in load_on_pk_identity
+    session.execute(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1716, in execute
+    conn = self._connection_for_bind(bind)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 1555, in _connection_for_bind
+    return self._transaction._connection_for_bind(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/orm/session.py", line 750, in _connection_for_bind
+    conn = bind.connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/future/engine.py", line 412, in connect
+    return super(Engine, self).connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3325, in connect
+    return self._connection_cls(self, close_with_result=close_with_result)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+    else engine.raw_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3404, in raw_connection
+    return self._wrap_pool_connect(self.pool.connect, _connection)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3374, in _wrap_pool_connect
+    Connection._handle_dbapi_exception_noconnection(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 2208, in _handle_dbapi_exception_noconnection
+    util.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/base.py", line 3371, in _wrap_pool_connect
+    return fn()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+    rec = pool._do_get()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/impl.py", line 256, in _do_get
+    return self._create_connection()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+    return _ConnectionRecord(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+    self.__connect()
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+    pool.logger.debug("Error on connect(): %s", e)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+    compat.raise_(
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+    raise exception
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/create.py", line 574, in connect
+    return dialect.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+    return self.dbapi.connect(*cargs, **cparams)
+  File "/home/airflow/.local/lib/python3.8/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not translate host name "postgres" to address: Temporary failure in name resolution
+
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+[2024-05-18T15:22:55.469+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-18T15:23:26.929+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-18T15:24:36.784+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-18T15:31:21.515+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-18T15:31:52.499+0000] {job.py:221} ERROR - Job heartbeat failed with error. Scheduler is in unhealthy state
+[2024-05-18T15:32:29.400+0000] {local_task_job_runner.py:302} WARNING - State of this instance has been externally set to up_for_retry. Terminating instance.
+[2024-05-18T15:32:29.452+0000] {process_utils.py:131} INFO - Sending 15 to group 15367. PIDs of all processes in the group: [15367]
+[2024-05-18T15:32:29.454+0000] {process_utils.py:86} INFO - Sending the signal 15 to group 15367
+[2024-05-18T15:33:29.485+0000] {process_utils.py:149} WARNING - process psutil.Process(pid=15367, name='airflow task ru', status='sleeping', started='17:23:47') did not respond to SIGTERM. Trying SIGKILL
+[2024-05-18T15:33:29.492+0000] {process_utils.py:86} INFO - Sending the signal 9 to group 15367
+[2024-05-18T15:33:29.590+0000] {process_utils.py:79} INFO - Process psutil.Process(pid=15367, name='airflow task ru', status='terminated', exitcode=<Negsignal.SIGKILL: -9>, started='17:23:47') (15367) terminated with exit code -9
+[2024-05-18T15:33:29.596+0000] {standard_task_runner.py:175} ERROR - Job 3497 was killed before it finished (likely due to running out of memory)
